@@ -1,12 +1,15 @@
-# editor-table
+# vue-editortable
 
 > A Vue.js editable table component
----------------
 
 ## Demo
 
 Demo page will coming soon!
----------------
+
+## Browser Compatability
+
+Only tested browser by now is Chrome.
+Feel free to test and share your results.
 
 ## Installation
 
@@ -32,7 +35,6 @@ components: {
   }
 // ...
 ```
----------------
 
 ## Usage
 
@@ -75,12 +77,10 @@ data() {
     },
 // ...
 ```
----------------
 
 ## Documentation
 
 You will find a complete documentation [here](https://github.com/el-jacko/vue-editortable/wiki)
----------------
 
 ## Build Setup
 
@@ -99,17 +99,14 @@ npm run build --report
 ```
 
 For detailed explanation on how things work, checkout the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
----------------
 
 ## TODOs
 
 A List of TODOs will coming soon!
----------------
 
 ## Contributions
 
 All contributions are welcome!
----------------
 
 ## License
 
