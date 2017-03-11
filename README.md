@@ -1,4 +1,4 @@
-# editable
+# editor-table
 
 > A Vue.js editable table component
 
