@@ -1,119 +1,120 @@
 <template>
 <div id="wrapper" ref="wrapper">
-<div id="container">  
-  <div id="lodingScreen" v-if="loading">
-    <icon name="refresh" spin class="refresh"></icon>
-  </div>
-  <div id="showColumnsModal" @click.self="setShowColumnsModal()" v-show="showColumnsModal">
-    <ul>
-      <span @click="setShowColumnsModal()">
-        <icon name="times" class="modalTimes"></icon>
-      </span>
-      <li v-for="(col, index) in cols">
-        <input type="checkbox" :name="col.name" :id="col.name" v-model="col.show" @change="updateShowColumns(index)">
-        <label :for="col.name">{{ col.name }}</label>
-      </li>
-    </ul>
-  </div>
-  <div id="top-menu">
-    <div class="btn-group">
-      <a role="button" class="btn" @click="addRow()">
-        <icon name="plus" class="plus"></icon>
-        New Row
-      </a>
-      <a role="button" class="btn" @click="deleteRow()">
-        <icon name="trash" class="trash"></icon>
-        Delete
-      </a>
-      <a role="button" class="btn" @click="setShowColumnsModal()">
-        <!-- <icon name="plus" class="plus"></icon> -->
-        Show Columns
-      </a>
+  <div id="container">  
+    <div id="lodingScreen" v-if="loading">
+      <icon name="refresh" spin class="refresh"></icon>
     </div>
-    <form id="search" v-if="opt.showSearchFilter">
-      <input type="text" name="query" v-model="filterKey" placeholder="Search">
-    </form>
-    <div class="btn-group swipe-btns">
-      <a role="button" class="btn" @click="swipeLeft()">
-        <icon name="arrow-left" class="arrow-left"></icon>
-      </a>
-      <a role="button" class="btn" @click="swipeRight()">
-        <icon name="arrow-right" class="arrow-right"></icon>
-      </a>
+    <div id="showColumnsModal" @click.self="setShowColumnsModal()" v-show="showColumnsModal">
+      <ul>
+        <span @click="setShowColumnsModal()">
+          <icon name="times" class="modalTimes"></icon>
+        </span>
+        <li v-for="(col, index) in cols">
+          <input type="checkbox" :name="col.name" :id="col.name" v-model="col.show" @change="updateShowColumns(index)">
+          <label :for="col.name">{{ col.name }}</label>
+        </li>
+      </ul>
     </div>
-  </div>
-	<table class="vue-editortable" ref="table">
-		<thead>
-    <tr>
-      <th v-for="col in cols" 
-        @click="sortBy(col.name, $event)" 
-        :class="{ active: sortArray.indexOf(col.name) >= 0 }"
-        v-show="!col.hidden && col.show"
-        ref="tableHead">
-      {{ col.title }}
-      <span>
-        <icon :name="sortOrders[col.name] > 0 ? 'long-arrow-up' : 'long-arrow-down'" class="sorting"></icon>
-        {{ sortOrderNumber(col.name) }}
-      </span>
-      </th>
-    </tr>
-		</thead>
-		<tbody v-if="!loading">
-			<tr v-for="(row, rowIndex) in filteredData" 
-      @click="setSelection(filteredData[rowIndex].id.value, $event)" 
-      :class="[selectedRowArray.indexOf(filteredData[rowIndex].id.value) >= 0 ? 'activeRow' : '']">
-				<td v-for="(cell, key, index) in row" 
-        @click="setTarget(rowIndex, key)" 
-        :class="[cell.isActive ? 'activeCell' : '']"
-        v-show="!cell.isHidden && cell.show"
-        :data-th="key">
-          <div class="cell-wrapper">
-            <div v-show="!cell.isActive || !cell.isEditable" ref="span">{{ cell.value }}</div>
-            <input 
-            type="text" 
-            name="cell"
-            spellcheck="false" 
-            v-show="cell.isActive && cell.isEditable" 
-            v-model="filteredData[rowIndex][key].value" 
-            @keydown.left.prevent="selectCell(rowIndex, index, $event)"
-            @keydown.right.prevent="selectCell(rowIndex, index, $event)"
-            @keydown.up.prevent="selectCell(rowIndex, index, $event)"
-            @keydown.down.prevent="selectCell(rowIndex, index, $event)"
-            :class="[cell.isActive ? 'activeCell' : '']"
-            @change="saveData(key, filteredData[rowIndex][key].value, filteredData[rowIndex].id.value), showSavingIcon(key, rowIndex)"
-            ref="inputFields">
-            <div v-show="savingIndex == rowIndex && savingKey == key" class="spinner-wrapper">
-              <icon name="spinner" spin class="spinner"></icon>
-            </div>
-          </div>
-        </td>
-			</tr>
-		</tbody>
-	</table>
-  <div id="pagination" v-if="opt.pagination.show">
-    <div class="row">
-      <label for="temsPerPage">Show: </label>
-      <select class="itemsPerPageDropdown" v-model="opt.pagination.itemsPerPage" id="itemsPerPage" @change="resetCurrentPage()">
-        <option v-for="option in opt.pagination.itemsPerPageValues" v-bind:value="option.value">
-          {{ option.text }}
-        </option>
-      </select>
-    </div>
-    <div class="row numbers">
-      <a :class="[isStartPage ? 'btn disabled' : 'btn']" role="button" @click="showPrev" :disabled="isStartPage">&laquo;</a>
-      <div v-for="pageNumber in totalPages">
-        <a class="btn disabled" role="button" v-show="pageNumber == 2 && currentPage >= 3&& maxNumber >= 7" disabled>...</a>
-        <a :class="[currentPage == pageNumber - 1 ? 'btn active' : 'btn']"
-          @click="setPage(pageNumber)"
-          v-if="isInPaginationRange(pageNumber)"
-          role="button">
-          {{ pageNumber }}
+    <div id="top-menu">
+      <div class="btn-group">
+        <a role="button" class="btn" @click="addRow()">
+          <icon name="plus" class="plus"></icon>
+          New Row
         </a>
-        <a class="btn disabled" role="button" v-show="pageNumber == maxNumber - 2 && currentPage <= maxNumber - 4 && maxNumber >= 7" disabled>...</a>
+        <a role="button" class="btn" @click="deleteRow()">
+          <icon name="trash" class="trash"></icon>
+          Delete
+        </a>
+        <a role="button" class="btn" @click="setShowColumnsModal()">
+          <!-- <icon name="plus" class="plus"></icon> -->
+          Show Columns
+        </a>
       </div>
-      <a :class="[isEndPage ? 'btn disabled' : 'btn']" role="button" @click="showNext" :disabled="isEndPage">&raquo;</a>
+      <form id="search" v-if="opt.showSearchFilter">
+        <input type="text" name="query" v-model="filterKey" placeholder="Search">
+      </form>
+      <div class="btn-group swipe-btns">
+        <a role="button" class="btn" @click="swipeLeft()">
+          <icon name="arrow-left" class="arrow-left"></icon>
+        </a>
+        <a role="button" class="btn" @click="swipeRight()">
+          <icon name="arrow-right" class="arrow-right"></icon>
+        </a>
+      </div>
     </div>
-</div>
+  	<table class="vue-editortable" ref="table">
+  		<thead>
+      <tr>
+        <th v-for="col in cols" 
+          @click="sortBy(col.name, $event)" 
+          :class="{ active: sortArray.indexOf(col.name) >= 0 }"
+          v-show="!col.hidden && col.show"
+          ref="tableHead">
+        {{ col.title }}
+        <span>
+          <icon :name="sortOrders[col.name] > 0 ? 'long-arrow-up' : 'long-arrow-down'" class="sorting"></icon>
+          {{ sortOrderNumber(col.name) }}
+        </span>
+        </th>
+      </tr>
+  		</thead>
+  		<tbody v-if="!loading">
+  			<tr v-for="(row, rowIndex) in filteredData" 
+        @click="setSelection(filteredData[rowIndex].id.value, $event)" 
+        :class="[selectedRowArray.indexOf(filteredData[rowIndex].id.value) >= 0 ? 'activeRow' : '']">
+  				<td v-for="(cell, key, index) in row" 
+          @click="setTarget(rowIndex, key)" 
+          :class="[cell.isActive ? 'activeCell' : '']"
+          v-show="!cell.isHidden && cell.show"
+          :data-th="key">
+            <div class="cell-wrapper">
+              <div v-show="!cell.isActive || !cell.isEditable" ref="span">{{ cell.value }}</div>
+              <input 
+              type="text" 
+              name="cell"
+              spellcheck="false" 
+              v-show="cell.isActive && cell.isEditable" 
+              v-model="filteredData[rowIndex][key].value" 
+              @keydown.left.prevent="selectCell(rowIndex, index, $event)"
+              @keydown.right.prevent="selectCell(rowIndex, index, $event)"
+              @keydown.up.prevent="selectCell(rowIndex, index, $event)"
+              @keydown.down.prevent="selectCell(rowIndex, index, $event)"
+              :class="[cell.isActive ? 'activeCell' : '']"
+              @change="saveData(key, filteredData[rowIndex][key].value, filteredData[rowIndex].id.value), showSavingIcon(key, rowIndex)"
+              ref="inputFields">
+              <div v-show="savingIndex == rowIndex && savingKey == key" class="spinner-wrapper">
+                <icon name="spinner" spin class="spinner"></icon>
+              </div>
+            </div>
+          </td>
+  			</tr>
+  		</tbody>
+  	</table>
+    <div id="pagination" v-if="opt.pagination.show">
+      <div class="row">
+        <label for="temsPerPage">Show: </label>
+        <select class="itemsPerPageDropdown" v-model="opt.pagination.itemsPerPage" id="itemsPerPage" @change="resetCurrentPage()">
+          <option v-for="option in opt.pagination.itemsPerPageValues" v-bind:value="option.value">
+            {{ option.text }}
+          </option>
+        </select>
+      </div>
+      <div class="row numbers">
+        <a :class="[isStartPage ? 'btn disabled' : 'btn']" role="button" @click="showPrev" :disabled="isStartPage">&laquo;</a>
+        <div v-for="pageNumber in totalPages">
+          <a class="btn disabled" role="button" v-show="pageNumber == 2 && currentPage >= 3&& maxNumber >= 7" disabled>...</a>
+          <a :class="[currentPage == pageNumber - 1 ? 'btn active' : 'btn']"
+            @click="setPage(pageNumber)"
+            v-if="isInPaginationRange(pageNumber)"
+            role="button">
+            {{ pageNumber }}
+          </a>
+          <a class="btn disabled" role="button" v-show="pageNumber == maxNumber - 2 && currentPage <= maxNumber - 4 && maxNumber >= 7" disabled>...</a>
+        </div>
+        <a :class="[isEndPage ? 'btn disabled' : 'btn']" role="button" @click="showNext" :disabled="isEndPage">&raquo;</a>
+      </div>
+    </div>
+  </div>
 </div>
 </template>
 
