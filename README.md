@@ -18,7 +18,7 @@ Feel free to test and share your results.
 ###npm
 ``` sh
 npm install --save vue-editortable
-
+```
 Import globally in an App:
 
 ``` javascript
@@ -80,7 +80,7 @@ data() {
 
 ## Documentation
 
-You will find a complete documentation [here](https://github.com/el-jacko/vue-editortable/wiki)
+You will find a complete documentation [here](https://github.com/el-jacko/vue-editortable/wiki).
 
 ## Build Setup
 
