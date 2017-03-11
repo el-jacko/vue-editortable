@@ -1,10 +1,10 @@
 {
   "name": "vue-editortable",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A Vue.js editable table component",
   "author": "Jacques Mannon",
   "private": false,
-  "main": "./src/components/VueEitortable.vue",
+  "main": "./src/components/VueEditortable.vue",
   "scripts": {
     "dev": "node build/dev-server.js",
     "build": "node build/build.js",
