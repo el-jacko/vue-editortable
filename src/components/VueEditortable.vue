@@ -26,13 +26,17 @@
           Delete
         </a>
         <a role="button" class="btn" @click="setShowColumnsModal()">
-          <!-- <icon name="plus" class="plus"></icon> -->
           Show Columns
         </a>
+        <input 
+        type="text" 
+        name="query" 
+        v-model="filterKey" 
+        placeholder="Search" 
+        ref="search" 
+        id="search" 
+        v-if="opt.showSearchFilter">
       </div>
-      <form id="search" v-if="opt.showSearchFilter">
-        <input type="text" name="query" v-model="filterKey" placeholder="Search">
-      </form>
       <div class="btn-group swipe-btns">
         <a role="button" class="btn" @click="swipeLeft()">
           <icon name="arrow-left" class="arrow-left"></icon>
@@ -63,7 +67,7 @@
         @click="setSelection(filteredData[rowIndex].id.value, $event)" 
         :class="[selectedRowArray.indexOf(filteredData[rowIndex].id.value) >= 0 ? 'activeRow' : '']">
   				<td v-for="(cell, key, index) in row" 
-          @click="setTarget(rowIndex, key)" 
+          @click="setTarget(rowIndex, key)"
           :class="[cell.isActive ? 'activeCell' : '']"
           v-show="!cell.isHidden && cell.show"
           :data-th="key">
@@ -74,13 +78,13 @@
               name="cell"
               spellcheck="false" 
               v-show="cell.isActive && cell.isEditable" 
-              v-model="filteredData[rowIndex][key].value" 
-              @keydown.left.prevent="selectCell(rowIndex, index, $event)"
-              @keydown.right.prevent="selectCell(rowIndex, index, $event)"
-              @keydown.up.prevent="selectCell(rowIndex, index, $event)"
-              @keydown.down.prevent="selectCell(rowIndex, index, $event)"
+              v-model="filteredData[rowIndex][key].value"
+              @change="saveData(key, filteredData[rowIndex][key].value, filteredData[rowIndex].id.value, $event), showSavingIcon(key, rowIndex)"
+              @keydown.left="selectCell(rowIndex, index, $event)"
+              @keydown.right="selectCell(rowIndex, index, $event)"
+              @keydown.up="selectCell(rowIndex, index, $event)"
+              @keydown.down="selectCell(rowIndex, index, $event)"
               :class="[cell.isActive ? 'activeCell' : '']"
-              @change="saveData(key, filteredData[rowIndex][key].value, filteredData[rowIndex].id.value), showSavingIcon(key, rowIndex)"
               ref="inputFields">
               <div v-show="savingIndex == rowIndex && savingKey == key" class="spinner-wrapper">
                 <icon name="spinner" spin class="spinner"></icon>
@@ -194,42 +198,71 @@
         initTableWidth: 0,
         tableWidth: 0,
         columnsWidth: [],
-        doInitTableWidths: false,
         showColumnsModal: false,
+        startCol: 0,
+        activeCol: 0,
+        map: {},
       };
     },
     created() {
-      this.setOptions();
-      this.setColumns();
-      this.setData();
+      const vm = this;
+      vm.setOptions();
+      vm.setColumns();
+      vm.setData();
+      window.addEventListener('keydown', this.shortcuts);
+      window.addEventListener('keyup', this.shortcuts);
     },
     methods: {
+      shortcuts(e) {
+        const vm = this;
+        vm.map[e.keyCode] = e.type === 'keydown';
+        console.log(vm.map);
+        console.log(e.keyCode);
+        // alt + arrow left -> swipeleft
+        if (vm.map[18] && vm.map[37]) {
+          vm.swipeLeft();
+          vm.map[37] = false;
+        }
+        // alt + arrow right -> swiperight
+        if (vm.map[18] && vm.map[39]) {
+          vm.swipeRight();
+          vm.map[39] = false;
+        }
+        // alt + f -> focus search
+        if (vm.map[18] && vm.map[70]) {
+          e.preventDefault();
+          vm.$refs.search.focus();
+        }
+        // alt + n -> add new row
+        if (vm.map[18] && vm.map[78]) {
+          e.preventDefault();
+          vm.addRow();
+          // to do -> select first input field
+        }
+        // alt + backspace || alt + delete -> delete row
+        if ((vm.map[18] && vm.map[8]) || (vm.map[18] && vm.map[46])) {
+          e.preventDefault();
+          vm.deleteRow();
+          // to do -> select nechst row and input field
+        }
+      },
       getWrapperWidth() {
         const vm = this;
-        // this.wrapperWidth = window.innerWidth;
-        // this.wrapperWidth = this.$refs.wrapper.offsetWidth;
-        const ths = vm.$refs.tableHead;
-        let res = 0;
-        for (let i = 0; i < vm.cols.length; i += 1) {
-          const thWidth = vm.columnsWidth[i];
-          if (!vm.cols[i].hidden) {
-            console.log('not hidden', ths[i].offsetWidth, thWidth);
-            res += ths[i].offsetWidth - thWidth;
-          }
-        }
-        this.wrapperWidth = this.$el.clientWidth - res;
-        console.log('page width:', this.wrapperWidth);
+        vm.wrapperWidth = vm.$el.clientWidth;
+        console.log('page width:', vm.wrapperWidth);
       },
       getTableWidth() {
         const vm = this;
+        const ths = vm.$refs.tableHead;
         let res = 0;
-        for (let i = 0; i < vm.columnsWidth.length; i += 1) {
-          res += vm.columnsWidth[i];
+        for (let i = 0; i < ths.length; i += 1) {
+          res += ths[i].offsetWidth;
         }
         vm.tableWidth = res;
         if (vm.initTableWidth === 0) {
           vm.initTableWidth = vm.tableWidth;
         }
+        console.log('new table width', vm.tableWidth);
         vm.getWrapperWidth();
         vm.setTableWidth();
       },
@@ -247,7 +280,7 @@
             ii = 0;
           }
         }
-        console.log('refs', vm.$refs);
+        // console.log('refs', vm.$refs);
         vm.$nextTick(() => {
           const ths = this.$refs.tableHead;
           for (let i = 0; i < ths.length; i += 1) {
@@ -264,18 +297,20 @@
         // console.log(window.getComputedStyle(spinner, null).getPropertyValue('width')
         const l = vm.$refs.inputFields.length;
         let ii = 0;
-        const ths = vm.$refs.tableHead;
+        // const ths = vm.$refs.tableHead;
+        // let thWidth;
         for (let i = 0; i < l; i += 1) {
-          let thWidth = vm.columnsWidth[ii];
-          if (vm.doInitTableWidths) {
-            thWidth = ths[ii].offsetWidth - thWidth;
-          }
+          // thWidth = vm.$refs.tableHead[ii].offsetWidth;
+          // if (vm.doInitTableWidths) {
+            // thWidth = vm.$refs.tableHead[ii].offsetWidth - vm.columnsWidth[ii];
+          // }
           // console.log(thWidth);
-          // console.log('new dabadabaduu width', `${thWidth}px`, ii, i);
-          vm.$refs.span[i].style.width = `${thWidth}px`;
-          vm.$refs.inputFields[i].style.width = `${thWidth}px`;
+          // console.log('new dabadabaduu width', `${thWidth}px`, vm.columnsWidth[ii]);
+          vm.$refs.span[i].style.width = `${vm.columnsWidth[ii]}px`;
+          vm.$refs.inputFields[i].style.width = `${vm.columnsWidth[ii]}px`;
+          // thWidth = 0;
           // divs[i].style.width = `${vm.$refs.tableHead[ii]}px`;
-          if (ii < vm.$refs.tableHead.length - 1) {
+          if (ii < vm.columnsWidth.length - 1) {
             ii += 1;
           } else {
             ii = 0;
@@ -311,6 +346,7 @@
       },
       setTableWidth() {
         const vm = this;
+        const ths = vm.$refs.tableHead;
         if (vm.tableWidth > vm.wrapperWidth) {
           const l = vm.cols.length;
           for (let i = 0; i < l; i += 1) {
@@ -326,7 +362,7 @@
             console.log('tableWidth', vm.tableWidth);
             for (let i = 0; i < l; i += 1) {
               if (!vm.cols[i].show) {
-                vm.tableWidth -= vm.columnsWidth[i];
+                vm.tableWidth -= ths[i].offsetWidth;
               }
             }
             console.log('tableWidth - not showed columns', vm.tableWidth);
@@ -335,7 +371,7 @@
                 break;
               }
               if (!vm.cols[i].hidden) {
-                vm.tableWidth -= vm.columnsWidth[i];
+                vm.tableWidth -= ths[i].offsetWidth;
                 console.log('tableWidth - hidden', vm.tableWidth, vm.wrapperWidth);
                 vm.$set(vm.cols[i], 'hidden', true);
                 const ll = vm.tableData.length;
@@ -349,9 +385,9 @@
         }
         vm.$nextTick(() => {
           let sum = 0;
-          for (let i = 0; i < vm.columnsWidth.length; i += 1) {
+          for (let i = 0; i < ths.length; i += 1) {
             if (!vm.cols[i].hidden) {
-              sum += vm.columnsWidth[i];
+              sum += ths[i].offsetWidth;
             }
           }
           if (sum === vm.initTableWidth) {
@@ -360,6 +396,15 @@
             vm.$refs.wrapper.style.flexFlow = 'column nowrap';
             vm.$refs.wrapper.style.alignItems = 'center';
           }
+          vm.$nextTick(() => {
+            console.log('active col', vm.activeCol);
+            for (let i = 0; i < vm.activeCol; i += 1) {
+              if (vm.cols[vm.activeCol].hidden) {
+                vm.swipeRight();
+                console.log('auto swipe');
+              }
+            }
+          });
         });
       },
       setTableWidthReverse() {
@@ -626,7 +671,18 @@
           const url = `${vm.opt.requests.postUrl}/${id}`;
           vm.postData(url, body, options, cb, errorCb);
         }
-        vm.doInitTableWidths = true;
+
+        for (let i = 0; i < vm.cols.length; i += 1) {
+          if (vm.cols[i].name === key) {
+            vm.activeCol = i;
+            console.log('startcol:', i);
+            break;
+          }
+        }
+        // vm.$nextTick(() => {
+        console.log('saved -> new init now');
+        vm.initTableWidths();
+        // });
       },
       // set sorting array and key, data gets filtered (computed)
       sortBy(key, event) {
@@ -674,11 +730,15 @@
           cell.value = '';
           cell.isActive = false;
           cell.isEditable = vm.cols[i].editable;
-          cell.show = true;
           if (vm.cols[i].hidden) {
             cell.isHidden = true;
           } else {
             cell.isHidden = false;
+          }
+          if (vm.cols[i].show) {
+            cell.show = true;
+          } else {
+            cell.show = false;
           }
           row[vm.cols[i].name] = cell;
           cell = {};
@@ -727,8 +787,6 @@
       // set active cell
       setTarget(rowIndex, key) {
         const vm = this;
-        if (vm.doInitTableWidths) vm.initTableWidths();
-        // vm.doInitTableWidths = false;
         if (vm.filteredData[rowIndex][key].isEditable) {
           if (vm.activeCell) vm.$set(vm.activeCell, 'isActive', false);
           vm.activeCell = vm.filteredData[rowIndex][key];
@@ -911,12 +969,16 @@
           }
         }
         if (event.key === 'ArrowRight') {
+          event.preventDefault();
           moveRight(index, rowIndex);
         } else if (event.key === 'ArrowLeft') {
+          event.preventDefault();
           moveLeft(index, rowIndex);
         } else if (event.key === 'ArrowUp') {
+          event.preventDefault();
           moveUp(index, rowIndex);
         } else if (event.key === 'ArrowDown') {
+          event.preventDefault();
           moveDown(index, rowIndex);
         }
       },
@@ -937,7 +999,7 @@
           }
         }
         console.log('tablewidth init value', vm.initTableWidth);
-        vm.doInitTableWidths = true;
+        // vm.doInitTableWidths = true;
         vm.initTableWidths();
       },
     },
@@ -980,6 +1042,7 @@
           const w = screen.width * ratio;
           if ((w / ratio) > 713) {
             if (vm.tableWidth === 0) {
+              console.log(w, ratio, w / ratio, vm.tableWidth);
               vm.getColumnsWidth();
             }
           }
@@ -1162,8 +1225,9 @@ table.vue-editortable {
   justify-content: space-between;
   margin-bottom: 20px;
 }
-#top-menu #search input[type="text"] {
-  height: 26px;
+#top-menu #search {
+  margin-left: 5px;
+  height: 30px;
   font-size: 18px;
   border: 1px solid black;
   border-radius: 5px;

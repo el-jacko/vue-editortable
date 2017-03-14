@@ -4,7 +4,7 @@
 
 ## Demo
 
-Demo page will coming soon!
+Demo page will be coming soon!
 
 ## Browser Compatability
 
@@ -102,7 +102,7 @@ For detailed explanation on how things work, checkout the [guide](http://vuejs-t
 
 ## TODOs
 
-A List of TODOs will coming soon!
+A List of TODOs will be coming soon!
 
 ## Contributions
 

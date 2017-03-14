@@ -6,6 +6,7 @@ import App from './App';
 
 Vue.use(VueResource);
 
+
 /* eslint-disable no-new */
 new Vue({
   el: '#app',

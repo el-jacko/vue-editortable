@@ -55,16 +55,6 @@
             name: 'married',
             editable: true,
           },
-          {
-            title: 'Titel',
-            name: 'title',
-            editable: true,
-          },
-          {
-            title: 'Kommentar',
-            name: 'post',
-            editable: true,
-          },
         ],
         options: {
           showSearchFilter: true,
