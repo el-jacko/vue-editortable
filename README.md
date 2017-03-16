@@ -1,7 +1,17 @@
 # vue-editortable
 
-A Vue.js editable table component
-* Load/Save Data from/to a database
+> A Vue.js editable table component
+> * Load/Save Data from/to a database
+> * Create, Edit, Save, and Delete Data
+> * Show/Hide columns
+> * Keyboard Navigation & Shortcuts
+> * SWIPE Design for wide tables
+> * Simple Responsive Design with data attributes
+> * Configurable
+> * Multisorting
+> * Searchfilter
+> * dynamic Pagination
+> * only vue.js, no other frameworks/libraries
 
 ---
 ## Demo
@@ -10,6 +20,7 @@ Demo page will be coming soon!
 
 ---
 ## Dependencies
+
 Vue.js
 Vue-awesome
 Vue-resource (not included)
@@ -115,7 +126,16 @@ For detailed explanation on how things work, checkout the [guide](http://vuejs-t
 ---
 ## TODOs
 
-A List of TODOs will be coming soon!
+Some major TODOs:
+* error messages
+* implementing Datatypes
+* validation
+* filter per columns
+* optional Modal before deleting
+* compatibility with CSS Frameworks (Bootstrap, Semantic, Foundation)
+* search & replace
+* edit multiple fields
+* statistics
 
 ---
 ## Contributions
