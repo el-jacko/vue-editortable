@@ -1,7 +1,7 @@
 # vue-editortable
 
 A Vue.js editable table component
-..*Load/Save Data from/to a database
+..* Load/Save Data from/to a database
 
 ---
 ## Demo
