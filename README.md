@@ -11,7 +11,6 @@
 > * Multisorting
 > * Searchfilter
 > * dynamic Pagination
-> * only vue.js, no other frameworks/libraries
 
 ---
 ## Demo
@@ -21,9 +20,10 @@ Demo page will be coming soon!
 ---
 ## Dependencies
 
-Vue.js
-Vue-awesome
-Vue-resource (not included)
+Only Vue.js, no other frameworks/libraries
+* Vue.js
+* Vue-awesome (included)
+* Vue-resource (not included)
 
 ---
 ## Browser Compatability
