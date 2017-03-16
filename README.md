@@ -1,10 +1,17 @@
 # vue-editortable
 
 > A Vue.js editable table component
+> ..*Load/Save Data from/to a database
 
+---
 ## Demo
 
 Demo page will be coming soon!
+
+## Dependencies
+Vue.js
+Vue-awesome
+Vue-resource (not included)
 
 ## Browser Compatability
 
