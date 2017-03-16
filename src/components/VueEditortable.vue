@@ -216,8 +216,6 @@
       shortcuts(e) {
         const vm = this;
         vm.map[e.keyCode] = e.type === 'keydown';
-        console.log(vm.map);
-        console.log(e.keyCode);
         // alt + arrow left -> swipeleft
         if (vm.map[18] && vm.map[37]) {
           vm.swipeLeft();
@@ -249,7 +247,6 @@
       getWrapperWidth() {
         const vm = this;
         vm.wrapperWidth = vm.$el.clientWidth;
-        console.log('page width:', vm.wrapperWidth);
       },
       getTableWidth() {
         const vm = this;
@@ -262,7 +259,6 @@
         if (vm.initTableWidth === 0) {
           vm.initTableWidth = vm.tableWidth;
         }
-        console.log('new table width', vm.tableWidth);
         vm.getWrapperWidth();
         vm.setTableWidth();
       },
@@ -280,36 +276,21 @@
             ii = 0;
           }
         }
-        // console.log('refs', vm.$refs);
         vm.$nextTick(() => {
           const ths = this.$refs.tableHead;
           for (let i = 0; i < ths.length; i += 1) {
-            // let thw = ths[i].offsetWidth;
             vm.columnsWidth.push(ths[i].offsetWidth);
-            // vm.columnsWidth.push(thw += 32);
           }
-          console.log('columnswidth', vm.columnsWidth);
           vm.setColumnsWidth();
         });
       },
       setColumnsWidth() {
         const vm = this;
-        // console.log(window.getComputedStyle(spinner, null).getPropertyValue('width')
         const l = vm.$refs.inputFields.length;
         let ii = 0;
-        // const ths = vm.$refs.tableHead;
-        // let thWidth;
         for (let i = 0; i < l; i += 1) {
-          // thWidth = vm.$refs.tableHead[ii].offsetWidth;
-          // if (vm.doInitTableWidths) {
-            // thWidth = vm.$refs.tableHead[ii].offsetWidth - vm.columnsWidth[ii];
-          // }
-          // console.log(thWidth);
-          // console.log('new dabadabaduu width', `${thWidth}px`, vm.columnsWidth[ii]);
           vm.$refs.span[i].style.width = `${vm.columnsWidth[ii]}px`;
           vm.$refs.inputFields[i].style.width = `${vm.columnsWidth[ii]}px`;
-          // thWidth = 0;
-          // divs[i].style.width = `${vm.$refs.tableHead[ii]}px`;
           if (ii < vm.columnsWidth.length - 1) {
             ii += 1;
           } else {
@@ -326,7 +307,6 @@
         const ratio = window.devicePixelRatio || 1;
         const w = screen.width * ratio;
         if ((w / ratio) > 713) {
-          console.log('---- DOING RESIZE -----');
           const l = vm.cols.length;
           for (let i = 0; i < l; i += 1) {
             if (vm.cols[i].hidden) {
@@ -336,7 +316,6 @@
                 vm.$set(vm.tableData[ii][vm.cols[i].name], 'isHidden', false);
               }
             }
-            console.log('cols', vm.cols[i].hidden);
           }
           vm.$nextTick(() => {
             vm.initTableWidth = 0;
@@ -359,20 +338,17 @@
             }
           }
           vm.$nextTick(() => {
-            console.log('tableWidth', vm.tableWidth);
             for (let i = 0; i < l; i += 1) {
               if (!vm.cols[i].show) {
                 vm.tableWidth -= ths[i].offsetWidth;
               }
             }
-            console.log('tableWidth - not showed columns', vm.tableWidth);
             for (let i = l - 1; i >= 0; i -= 1) {
               if (vm.tableWidth < vm.wrapperWidth) {
                 break;
               }
               if (!vm.cols[i].hidden) {
                 vm.tableWidth -= ths[i].offsetWidth;
-                console.log('tableWidth - hidden', vm.tableWidth, vm.wrapperWidth);
                 vm.$set(vm.cols[i], 'hidden', true);
                 const ll = vm.tableData.length;
                 for (let ii = 0; ii < ll; ii += 1) {
@@ -391,17 +367,14 @@
             }
           }
           if (sum === vm.initTableWidth) {
-            console.log('make it flexxiiiiii');
             vm.$refs.wrapper.style.display = 'flex';
             vm.$refs.wrapper.style.flexFlow = 'column nowrap';
             vm.$refs.wrapper.style.alignItems = 'center';
           }
           vm.$nextTick(() => {
-            console.log('active col', vm.activeCol);
             for (let i = 0; i < vm.activeCol; i += 1) {
               if (vm.cols[vm.activeCol].hidden) {
                 vm.swipeRight();
-                console.log('auto swipe');
               }
             }
           });
@@ -471,7 +444,6 @@
           return sum;
         }
         if (vm.cols[0].hidden && vm.cols[nextCol].hidden && vm.cols[nextCol].show) {
-          console.log('hided col', vm.cols[nextCol], 'nextcol', nextCol, 'startcol', startCol);
           vm.$set(vm.cols[nextCol], 'hidden', false);
           for (let ii = 0; ii < ll; ii += 1) {
             vm.$set(vm.tableData[ii][vm.cols[nextCol].name], 'isHidden', false);
@@ -485,7 +457,6 @@
             for (let ii = 0; ii < ll; ii += 1) {
               vm.$set(vm.tableData[ii][vm.cols[nextCol].name], 'isHidden', false);
             }
-            console.log('changed next', sumCols(), vm.wrapperWidth);
             nextCol -= 1;
           }
           if (sumCols() >= vm.wrapperWidth && !vm.cols[startCol].hidden && vm.cols[startCol].show) {
@@ -493,7 +464,6 @@
             for (let ii = 0; ii < ll; ii += 1) {
               vm.$set(vm.tableData[ii][vm.cols[startCol].name], 'isHidden', true);
             }
-            console.log('changed start', sumCols(), vm.wrapperWidth);
             startCol -= 1;
           }
         }
@@ -517,7 +487,6 @@
             break;
           }
         }
-        console.log('nextcol', nextCol);
         function sumCols() {
           let sum = 0;
           for (let i = 0; i < vm.columnsWidth.length; i += 1) {
@@ -541,8 +510,6 @@
             for (let ii = 0; ii < ll; ii += 1) {
               vm.$set(vm.tableData[ii][vm.cols[nextCol].name], 'isHidden', false);
             }
-            console.log('changed next', vm.cols[nextCol], sumCols());
-            console.log(sumCols() + vm.columnsWidth[nextCol + 1], vm.wrapperWidth);
             nextCol += 1;
           }
           if (sumCols() >= vm.wrapperWidth && !vm.cols[startCol].hidden && vm.cols[startCol].show) {
@@ -550,7 +517,6 @@
             for (let ii = 0; ii < ll; ii += 1) {
               vm.$set(vm.tableData[ii][vm.cols[startCol].name], 'isHidden', true);
             }
-            console.log('changed start', vm.cols[startCol], sumCols());
             startCol += 1;
           }
         }
@@ -610,7 +576,6 @@
       },
       // set data Object with all needed and given options
       setData() {
-        console.log(this.cols);
         const vm = this;
         vm.loading = true;
         let rawData = {};
@@ -675,14 +640,11 @@
         for (let i = 0; i < vm.cols.length; i += 1) {
           if (vm.cols[i].name === key) {
             vm.activeCol = i;
-            console.log('startcol:', i);
             break;
           }
         }
-        // vm.$nextTick(() => {
-        console.log('saved -> new init now');
+        if (vm.activeCell) vm.$set(vm.activeCell, 'isActive', false);
         vm.initTableWidths();
-        // });
       },
       // set sorting array and key, data gets filtered (computed)
       sortBy(key, event) {
@@ -716,7 +678,6 @@
         this.savingKey = key;
       },
       addRow() {
-        console.log('el', this.$el.querySelector('table.vue-editortable').offsetWidth);
         const vm = this;
         let val;
         const highestId = Math.max(...vm.tableData.map((obj) => {
@@ -750,14 +711,10 @@
       deleteRow() {
         const vm = this;
         const options = [];
-        function cb(response) {
-          console.log('response', response);
-          console.log(vm.selectedRowArray);
+        function cb() {
           for (let i = 0; i < vm.selectedRowArray.length; i += 1) {
             for (let ii = 0; ii < vm.tableData.length; ii += 1) {
-              console.log(vm.tableData[ii].id.value, vm.selectedRowArray[i]);
               if (vm.tableData[ii].id.value === vm.selectedRowArray[i]) {
-                console.log('i:', i, 'ii:', ii);
                 vm.tableData.splice(ii, 1);
                 break;
               }
@@ -765,8 +722,7 @@
           }
           vm.selectedRowArray = [];
         }
-        function errorCb(response) {
-          console.log('response', response);
+        function errorCb() {
         }
         if (vm.selectedRowArray.length > 0) {
           let str = '';
@@ -901,9 +857,6 @@
               moveLeft(i, ri);
             }
           } else if (vm.currentPage > 0) {
-            console.log('currentPage:', vm.currentPage);
-            console.log('tableWidth:', vm.tableWidth);
-            console.log('initTableWidth:', vm.initTableWidth);
             vm.tableWidth = vm.initTableWidth;
             vm.setTableWidthReverse();
             vm.setPage(vm.currentPage);
@@ -912,9 +865,7 @@
               && !vm.filteredData[lastIndex][cols[lastCol].name].isHidden) {
               vm.setSelection(vm.filteredData[lastIndex][cols[0].name].value, event.key);
               vm.setTarget(lastIndex, cols[lastCol].name);
-              console.log('111');
             } else {
-              console.log('222');
               vm.tableWidth = vm.initTableWidth;
               vm.setTableWidthReverse();
               i = lastCol;
@@ -988,7 +939,6 @@
       updateShowColumns(index) {
         const vm = this;
         const l = vm.tableData.length;
-        console.log('index:', index);
         if (!vm.cols[index].show) {
           for (let i = 0; i < l; i += 1) {
             vm.$set(vm.tableData[i][vm.cols[index].name], 'show', false);
@@ -998,8 +948,6 @@
             vm.$set(vm.tableData[i][vm.cols[index].name], 'show', true);
           }
         }
-        console.log('tablewidth init value', vm.initTableWidth);
-        // vm.doInitTableWidths = true;
         vm.initTableWidths();
       },
     },
@@ -1042,7 +990,6 @@
           const w = screen.width * ratio;
           if ((w / ratio) > 713) {
             if (vm.tableWidth === 0) {
-              console.log(w, ratio, w / ratio, vm.tableWidth);
               vm.getColumnsWidth();
             }
           }
