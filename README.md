@@ -1,23 +1,26 @@
 # vue-editortable
 
-> A Vue.js editable table component
-> ..*Load/Save Data from/to a database
+A Vue.js editable table component
+..*Load/Save Data from/to a database
 
 ---
 ## Demo
 
 Demo page will be coming soon!
 
+---
 ## Dependencies
 Vue.js
 Vue-awesome
 Vue-resource (not included)
 
+---
 ## Browser Compatability
 
 Only tested browser by now is Chrome.
 Feel free to test and share your results.
 
+---
 ## Installation
 
 #### If you use Webpack/Browserify
@@ -85,10 +88,12 @@ data() {
 // ...
 ```
 
+---
 ## Documentation
 
 You will find a complete documentation [here](https://github.com/el-jacko/vue-editortable/wiki).
 
+---
 ## Build Setup
 
 ``` sh
@@ -107,14 +112,17 @@ npm run build --report
 
 For detailed explanation on how things work, checkout the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
 
+---
 ## TODOs
 
 A List of TODOs will be coming soon!
 
+---
 ## Contributions
 
 All contributions are welcome!
 
+---
 ## License
 
 [MIT](http://opensource.org/licenses/MIT)
