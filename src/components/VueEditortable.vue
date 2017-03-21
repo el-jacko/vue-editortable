@@ -19,14 +19,15 @@
       <div class="btn-group">
         <a role="button" class="btn" @click="addRow()">
           <icon name="plus" class="plus"></icon>
-          New Row
+          New
         </a>
         <a role="button" class="btn" @click="deleteRow()">
           <icon name="trash" class="trash"></icon>
           Delete
         </a>
         <a role="button" class="btn" @click="setShowColumnsModal()">
-          Show Columns
+          <icon name="eye" class="eye"></icon>
+          Show
         </a>
         <input 
         type="text" 
@@ -38,10 +39,10 @@
         v-if="opt.showSearchFilter">
       </div>
       <div class="btn-group swipe-btns">
-        <a role="button" class="btn" @click="swipeLeft()">
+        <a role="button" :class="[leftSwipable ? 'btn' : 'btn disabled']" @click="leftSwipable && swipeLeft()">
           <icon name="arrow-left" class="arrow-left"></icon>
         </a>
-        <a role="button" class="btn" @click="swipeRight()">
+        <a role="button" :class="[rightSwipable ? 'btn' : 'btn disabled']" @click="rightSwipable && swipeRight()">
           <icon name="arrow-right" class="arrow-right"></icon>
         </a>
       </div>
@@ -106,14 +107,14 @@
       <div class="row numbers">
         <a :class="[isStartPage ? 'btn disabled' : 'btn']" role="button" @click="showPrev" :disabled="isStartPage">&laquo;</a>
         <div v-for="pageNumber in totalPages">
-          <a class="btn disabled" role="button" v-show="pageNumber == 2 && currentPage >= 3&& maxNumber >= 7" disabled>...</a>
+          <a class="btn disabled points" role="button" v-show="pageNumber == 2 && currentPage >= 3&& maxNumber >= 7" disabled>...</a>
           <a :class="[currentPage == pageNumber - 1 ? 'btn active' : 'btn']"
             @click="setPage(pageNumber)"
             v-if="isInPaginationRange(pageNumber)"
             role="button">
             {{ pageNumber }}
           </a>
-          <a class="btn disabled" role="button" v-show="pageNumber == maxNumber - 2 && currentPage <= maxNumber - 4 && maxNumber >= 7" disabled>...</a>
+          <a class="btn disabled points" role="button" v-show="pageNumber == maxNumber - 2 && currentPage <= maxNumber - 4 && maxNumber >= 7" disabled>...</a>
         </div>
         <a :class="[isEndPage ? 'btn disabled' : 'btn']" role="button" @click="showNext" :disabled="isEndPage">&raquo;</a>
       </div>
@@ -128,6 +129,7 @@
   import 'vue-awesome/icons/refresh';
   import 'vue-awesome/icons/spinner';
   import 'vue-awesome/icons/times';
+  import 'vue-awesome/icons/eye';
   import 'vue-awesome/icons/plus';
   import 'vue-awesome/icons/trash';
   import 'vue-awesome/icons/arrow-left';
@@ -202,6 +204,8 @@
         startCol: 0,
         activeCol: 0,
         map: {},
+        leftSwipable: false,
+        rightSwipable: true,
       };
     },
     created() {
@@ -235,13 +239,11 @@
         if (vm.map[18] && vm.map[78]) {
           e.preventDefault();
           vm.addRow();
-          // to do -> select first input field
         }
         // alt + backspace || alt + delete -> delete row
         if ((vm.map[18] && vm.map[8]) || (vm.map[18] && vm.map[46])) {
           e.preventDefault();
           vm.deleteRow();
-          // to do -> select nechst row and input field
         }
       },
       getWrapperWidth() {
@@ -467,6 +469,12 @@
             startCol -= 1;
           }
         }
+        if (!vm.cols[0].hidden) {
+          vm.leftSwipable = false;
+        }
+        if (vm.cols[vm.cols.length - 1].hidden) {
+          vm.rightSwipable = true;
+        }
       },
       swipeRight() {
         const vm = this;
@@ -519,6 +527,12 @@
             }
             startCol += 1;
           }
+        }
+        if (vm.cols[0].hidden) {
+          vm.leftSwipable = true;
+        }
+        if (!vm.cols[vm.cols.length - 1].hidden) {
+          vm.rightSwipable = false;
         }
       },
       setOptions() {
@@ -687,6 +701,8 @@
         let row = {};
         let cell = {};
         const l = vm.cols.length;
+        let setActive = false;
+        let activeKey = 0;
         for (let i = 0; i < l; i += 1) {
           cell.value = '';
           cell.isActive = false;
@@ -701,16 +717,30 @@
           } else {
             cell.show = false;
           }
+          if (cell.isEditable && !cell.hidden && cell.show && !setActive) {
+            activeKey = vm.cols[i].name;
+            setActive = true;
+          }
           row[vm.cols[i].name] = cell;
           cell = {};
         }
         vm.tableData.unshift(row);
         vm.tableData[0].id.value = highestId + 1;
         row = {};
+        vm.$nextTick(() => {
+          vm.setTarget(0, activeKey);
+          vm.setSelection(vm.tableData[0].id.value, false);
+        });
       },
       deleteRow() {
         const vm = this;
         const options = [];
+        let nextId;
+        for (let i = 0; i < vm.filteredData.length; i += 1) {
+          if (vm.selectedRowArray[vm.selectedRowArray.length - 1] === vm.filteredData[i].id.value) {
+            nextId = vm.filteredData[i + 1].id.value;
+          }
+        }
         function cb() {
           for (let i = 0; i < vm.selectedRowArray.length; i += 1) {
             for (let ii = 0; ii < vm.tableData.length; ii += 1) {
@@ -720,7 +750,10 @@
               }
             }
           }
-          vm.selectedRowArray = [];
+          vm.$nextTick(() => {
+            vm.setTarget(vm.getRowIndex(nextId), 'firstname');
+            vm.setSelection(nextId, false);
+          });
         }
         function errorCb() {
         }
@@ -739,6 +772,21 @@
             vm.deleteData(url, options, cb, errorCb);
           }
         }
+      },
+      // helper
+      getRowIndex(id) {
+        const vm = this;
+        let key;
+        for (let i = 0; i < vm.filteredData.length; i += 1) {
+          if (id === vm.filteredData[i].id.value) {
+            key = i;
+          }
+        }
+        let finalRowIndex = key;
+        for (let rowIndex = key; rowIndex > vm.itemsPerPage; rowIndex -= vm.itemsPerPage) {
+          finalRowIndex = rowIndex;
+        }
+        return finalRowIndex;
       },
       // set active cell
       setTarget(rowIndex, key) {
@@ -1045,6 +1093,20 @@
 .btn:hover {
   background-color: #B2C61D;
 }
+.btn.active {
+  background-color: #B2C61D;
+}
+.btn.disabled.points {
+  color: #000;
+}
+.btn.disabled {
+  cursor: default;
+  color: lightgrey;
+  border: 1px solid lightgrey;
+}
+.btn.disabled:hover {
+  background-color: #fff;
+}
 .icon-btn {
   display: flex;
   justify-content: space-between;
@@ -1179,6 +1241,11 @@ table.vue-editortable {
   border: 1px solid black;
   border-radius: 5px;
 }
+#top-menu #search:focus {
+  outline: none !important;
+  border: 1px solid #B2C61D;
+  /*box-shadow: 0 0 10px;*/
+}
 #top-menu .btn-group {
   flex-flow: row wrap;
 }
@@ -1196,13 +1263,6 @@ table.vue-editortable {
   display: flex;
   flex-flow: row nowrap;
   justify-content: space-between;
-}
-#pagination a.btn.active {
-  background-color: #B2C61D;
-}
-#pagination a.btn.disabled {
-  cursor: default;
-  border: 1px solid lightgrey;
 }
 #pagination a.btn.disabled:hover {
   background-color: #fff;
