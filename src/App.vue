@@ -59,10 +59,11 @@
         options: {
           showSearchFilter: true,
           requests: {
-            // getUrl: 'http://api.dev/api/users',
-            // postUrl: 'http://api.dev/api/users',
-            // deleteUrl: 'http://api.dev/api/users',
-            allUrl: 'http://api.dev/api/users',
+            getUrl: 'http://api.dev/api/users',
+            postUrl: 'http://api.dev/api/users/save',
+            putUrl: 'http://api.dev/api/users/put',
+            patchUrl: 'http://api.dev/api/users/patch',
+            deleteUrl: 'http://api.dev/api/users/delete',
           },
           // pagination: {
             // itemsPerPage: 100,

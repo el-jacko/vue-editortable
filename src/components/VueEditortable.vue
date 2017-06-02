@@ -16,16 +16,16 @@
       </ul>
     </div>
     <div id="top-menu">
-      <div class="btn-group">
-        <a role="button" class="btn" @click="addRow()">
+      <div class="vet-btn-group">
+        <a role="button" class="vet-btn" @click="addRow()">
           <icon name="plus" class="plus"></icon>
           New
         </a>
-        <a role="button" class="btn" @click="deleteRow()">
+        <a role="button" class="vet-btn" @click="deleteRow()">
           <icon name="trash" class="trash"></icon>
           Delete
         </a>
-        <a role="button" class="btn" @click="setShowColumnsModal()">
+        <a role="button" class="vet-btn" @click="setShowColumnsModal()">
           <icon name="eye" class="eye"></icon>
           Show
         </a>
@@ -38,11 +38,11 @@
         id="search" 
         v-if="opt.showSearchFilter">
       </div>
-      <div class="btn-group swipe-btns">
-        <a role="button" :class="[leftSwipable ? 'btn' : 'btn disabled']" @click="leftSwipable && swipeLeft()">
+      <div class="vet-btn-group swipe-btns">
+        <a role="button" :class="[leftSwipable ? 'vet-btn' : 'vet-btn disabled']" @click="leftSwipable && swipeLeft()">
           <icon name="arrow-left" class="arrow-left"></icon>
         </a>
-        <a role="button" :class="[rightSwipable ? 'btn' : 'btn disabled']" @click="rightSwipable && swipeRight()">
+        <a role="button" :class="[rightSwipable ? 'vet-btn' : 'vet-btn disabled']" @click="rightSwipable && swipeRight()">
           <icon name="arrow-right" class="arrow-right"></icon>
         </a>
       </div>
@@ -105,18 +105,18 @@
         </select>
       </div>
       <div class="row numbers">
-        <a :class="[isStartPage ? 'btn disabled' : 'btn']" role="button" @click="showPrev" :disabled="isStartPage">&laquo;</a>
+        <a :class="[isStartPage ? 'vet-btn disabled' : 'vet-btn']" role="button" @click="showPrev" :disabled="isStartPage">&laquo;</a>
         <div v-for="pageNumber in totalPages">
-          <a class="btn disabled points" role="button" v-show="pageNumber == 2 && currentPage >= 3&& maxNumber >= 7" disabled>...</a>
-          <a :class="[currentPage == pageNumber - 1 ? 'btn active' : 'btn']"
+          <a class="vet-btn disabled points" role="button" v-show="pageNumber == 2 && currentPage >= 3&& maxNumber >= 7" disabled>...</a>
+          <a :class="[currentPage == pageNumber - 1 ? 'vet-btn active' : 'vet-btn']"
             @click="setPage(pageNumber)"
             v-if="isInPaginationRange(pageNumber)"
             role="button">
             {{ pageNumber }}
           </a>
-          <a class="btn disabled points" role="button" v-show="pageNumber == maxNumber - 2 && currentPage <= maxNumber - 4 && maxNumber >= 7" disabled>...</a>
+          <a class="vet-btn disabled points" role="button" v-show="pageNumber == maxNumber - 2 && currentPage <= maxNumber - 4 && maxNumber >= 7" disabled>...</a>
         </div>
-        <a :class="[isEndPage ? 'btn disabled' : 'btn']" role="button" @click="showNext" :disabled="isEndPage">&raquo;</a>
+        <a :class="[isEndPage ? 'vet-btn disabled' : 'vet-btn']" role="button" @click="showNext" :disabled="isEndPage">&raquo;</a>
       </div>
     </div>
   </div>
@@ -179,8 +179,9 @@
           requests: {
             getUrl: false,
             postUrl: false,
+            putUrl: false,
+            patchUrl: false,
             deleteUrl: false,
-            allUrl: false,
           },
           showSearchFilter: false,
         },
@@ -593,9 +594,8 @@
         const vm = this;
         vm.loading = true;
         let rawData = {};
-        const options = [];
         function cb(response) {
-          rawData = response.body;
+          rawData = response.data;
           const l = rawData.length;
           for (let i = 0; i < l; i += 1) {
             let row = {};
@@ -620,12 +620,10 @@
         }
         // get data from prop values if set or from api if url is set
         if (vm.data.values !== undefined) {
-          rawData.body = vm.data.values;
+          rawData.data = vm.data.values;
           cb(rawData);
-        } else if (vm.opt.requests.allUrl) {
-          vm.getData(vm.opt.requests.allUrl, options, cb, errorCb);
         } else if (vm.opt.requests.getUrl) {
-          vm.getData(vm.opt.requests.getUrl, options, cb, errorCb);
+          vm.getData(vm.opt.requests.getUrl, cb, errorCb);
         }
       },
       // save changed cell / post request
@@ -633,8 +631,7 @@
         const vm = this;
         const postData = {};
         postData[key] = value;
-        const body = postData;
-        const options = [];
+        const data = postData;
         function cb() {
           vm.savingKey = false;
           vm.savingIndex = false;
@@ -643,21 +640,16 @@
           vm.savingKey = false;
           vm.savingIndex = false;
         }
-        if (vm.opt.requests.allUrl) {
-          const url = `${vm.opt.requests.allUrl}/${id}`;
-          vm.postData(url, body, options, cb, errorCb);
-        } else if (vm.opt.requests.postUrl) {
-          const url = `${vm.opt.requests.postUrl}/${id}`;
-          vm.postData(url, body, options, cb, errorCb);
+        if (vm.opt.requests.postUrl) {
+          const url = `${vm.opt.requests.patchUrl}/${id}`;
+          vm.patchData(url, data, cb, errorCb);
         }
-
         for (let i = 0; i < vm.cols.length; i += 1) {
           if (vm.cols[i].name === key) {
             vm.activeCol = i;
             break;
           }
         }
-        if (vm.activeCell) vm.$set(vm.activeCell, 'isActive', false);
         vm.initTableWidths();
       },
       // set sorting array and key, data gets filtered (computed)
@@ -1081,7 +1073,7 @@
   right: 10px; 
   height: 1.4em; 
 }
-.btn {
+.vet-btn {
   margin: 0 5px;
   padding: 5px 10px;
   background-color: #fff;
@@ -1090,30 +1082,30 @@
   border-radius: 5px;
   cursor: pointer;
 }
-.btn:hover {
+.vet-btn:hover {
   background-color: #B2C61D;
 }
-.btn.active {
+.vet-btn.active {
   background-color: #B2C61D;
 }
-.btn.disabled.points {
+.vet-btn.disabled.points {
   color: #000;
 }
-.btn.disabled {
+.vet-btn.disabled {
   cursor: default;
   color: lightgrey;
   border: 1px solid lightgrey;
 }
-.btn.disabled:hover {
+.vet-btn.disabled:hover {
   background-color: #fff;
 }
-.icon-btn {
+.icon-vet-btn {
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-flow: row nowrap;
 }
-.btn-group {
+.vet-btn-group {
   display: flex;
 }
 .row {
