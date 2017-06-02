@@ -1,13 +1,21 @@
+import axios from 'axios';
+
 export default {
   methods: {
-    getData(url, options, cb, errorCb) {
-      this.$http.get(url, options).then(cb, errorCb);
+    getData(url, cb, errorCb) {
+      axios.get(url).then(cb).catch(errorCb);
     },
-    postData(url, body, options, cb, errorCb) {
-      this.$http.post(url, body, options).then(cb, errorCb);
+    postData(url, data, cb, errorCb) {
+      axios.post(url, data).then(cb).catch(errorCb);
     },
-    deleteData(url, options, cb, errorCb) {
-      this.$http.delete(url, options).then(cb, errorCb);
+    putData(url, data, cb, errorCb) {
+      axios.put(url, data).then(cb).catch(errorCb);
+    },
+    patchData(url, data, cb, errorCb) {
+      axios.patch(url, data).then(cb).catch(errorCb);
+    },
+    deleteData(url, cb, errorCb) {
+      axios.delete(url).then(cb).catch(errorCb);
     },
   },
 };

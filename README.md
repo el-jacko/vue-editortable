@@ -21,7 +21,7 @@ Demo page will be coming soon!
 ## Dependencies
 
 Only Vue.js, no other frameworks/libraries
-* Vue.js
+* Vue.js >= 2.0 (tested with 2.2.2)
 * Vue-awesome (included)
 * Vue-resource (not included)
 
@@ -36,7 +36,7 @@ Feel free to test and share your results.
 
 #### If you use Webpack/Browserify
 
-###npm
+### npm
 ``` sh
 npm install --save vue-editortable
 ```
