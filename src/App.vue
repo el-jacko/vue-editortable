@@ -28,6 +28,14 @@
             title: 'Vorname',
             name: 'firstname',
             editable: true,
+            validator: {
+              rules: [
+                'ip4',
+              ],
+              messages: [
+                'Must be alpha',
+              ],
+            },
           },
           {
             title: 'Nachname',

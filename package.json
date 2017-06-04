@@ -1,6 +1,6 @@
 {
   "name": "vue-editortable",
-  "version": "1.0.7",
+  "version": "1.0.9",
   "description": "A Vue.js editable table component",
   "author": "Jacques Mannon",
   "private": false,
@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "axios": "^0.16.1",
+    "validator": "^7.0.0",
     "vue": "^2.2.2",
     "vue-awesome": "^2.1.0",
     "vue-resource": "^1.2.1"
