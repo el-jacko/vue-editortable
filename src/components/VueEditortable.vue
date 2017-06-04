@@ -91,7 +91,7 @@
           <icon name="spinner" spin class="spinner"></icon>
         </div>
       </div>
-      <div v-if="cell.hasErrors.length > 0">{{ cell.hasErrors[0] }}</div>
+      <div v-if="cell.hasErrors.length > 0" class="validation-error">{{ cell.hasErrors[0] }}</div>
     </td>
   </tr>
 </tbody>
@@ -1281,6 +1281,10 @@
   }
   #pagination a.btn.disabled:hover {
     background-color: #fff;
+  }
+  .validation-error {
+    color: red;
+    font-size: 0.8em;
   }
 
   @media only screen and (max-width: 713px) {

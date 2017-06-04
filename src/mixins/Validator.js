@@ -30,14 +30,72 @@ export default {
         case 'contains':
           res = validator.contains(value, paraOne);
           break;
+        case 'int':
+          res = validator.isInt(value);
+          break;
+        case 'float':
+          res = validator.isFloat(value);
+          break;
         case 'min':
-          res = validator.isInt(value, { min: paraOne });
+          if (validator.isInt(value)) {
+            res = validator.isInt(value, { min: parseInt(paraOne, 10) });
+          } else if (validator.isFloat(value)) {
+            res = validator.isFloat(value, { min: parseFloat(paraOne, 10) });
+          }
           break;
         case 'max':
-          res = validator.isInt(value, { max: paraOne });
+          if (validator.isInt(value)) {
+            res = validator.isInt(value, { max: parseInt(paraOne, 10) });
+          } else if (validator.isFloat(value)) {
+            res = validator.isFloat(value, { max: parseFloat(paraOne, 10) });
+          }
           break;
         case 'between':
-          res = validator.isInt(value, { min: paraOne, max: paraTwo });
+          if (validator.isInt(value)) {
+            res = validator.isInt(value, { min: parseInt(paraOne, 10),
+              max: parseInt(paraTwo, 10) });
+          } else if (validator.isFloat(value)) {
+            res = validator.isFloat(value, { min: parseFloat(paraOne, 10),
+              max: parseFloat(paraTwo, 10) });
+          }
+          break;
+        case 'gt':
+          if (validator.isInt(value)) {
+            res = validator.isInt(value, { gt: parseInt(paraOne, 10) });
+          } else if (validator.isFloat(value)) {
+            res = validator.isFloat(value, { gt: parseFloat(paraOne, 10) });
+          }
+          break;
+        case 'lt':
+          if (validator.isInt(value)) {
+            res = validator.isInt(value, { lt: parseInt(paraOne, 10) });
+          } else if (validator.isFloat(value)) {
+            res = validator.isFloat(value, { lt: parseFloat(paraOne, 10) });
+          }
+          break;
+        case 'alpha':
+          res = validator.isAlpha(value, paraOne);
+          break;
+        case 'alphaNum':
+          res = validator.isAlphanumeric(value, paraOne);
+          break;
+        case 'bool':
+          res = validator.isBoolean(value);
+          break;
+        case 'url':
+          res = validator.isURL(value);
+          break;
+        case 'fqdn':
+          res = validator.isFQDN(value);
+          break;
+        case 'hexColor':
+          res = validator.isHexColor(value);
+          break;
+        case 'ip4':
+          res = validator.isIP(value, 4);
+          break;
+        case 'ip6':
+          res = validator.isIP(value, 6);
           break;
         default:
           res = false;

@@ -30,14 +30,10 @@
             editable: true,
             validator: {
               rules: [
-                'required',
-                'email',
-                'contains:hansi',
+                'ip4',
               ],
               messages: [
-                'Field is required',
-                'Wrong email format',
-                'Must contain Hansi',
+                'Must be alpha',
               ],
             },
           },
