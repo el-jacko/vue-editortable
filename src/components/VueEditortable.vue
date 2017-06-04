@@ -1,125 +1,126 @@
 <template>
-<div id="wrapper" ref="wrapper">
-  <div id="container">  
-    <div id="lodingScreen" v-if="loading">
-      <icon name="refresh" spin class="refresh"></icon>
-    </div>
-    <div id="showColumnsModal" @click.self="setShowColumnsModal()" v-show="showColumnsModal">
-      <ul>
-        <span @click="setShowColumnsModal()">
-          <icon name="times" class="modalTimes"></icon>
-        </span>
-        <li v-for="(col, index) in cols">
-          <input type="checkbox" :name="col.name" :id="col.name" v-model="col.show" @change="updateShowColumns(index)">
-          <label :for="col.name">{{ col.name }}</label>
-        </li>
-      </ul>
-    </div>
-    <div id="top-menu">
-      <div class="vet-btn-group">
-        <a role="button" class="vet-btn" @click="addRow()">
-          <icon name="plus" class="plus"></icon>
-          New
-        </a>
-        <a role="button" class="vet-btn" @click="deleteRow()">
-          <icon name="trash" class="trash"></icon>
-          Delete
-        </a>
-        <a role="button" class="vet-btn" @click="setShowColumnsModal()">
-          <icon name="eye" class="eye"></icon>
-          Show
-        </a>
+  <div id="wrapper" ref="wrapper">
+    <div id="container">  
+      <div id="lodingScreen" v-if="loading">
+        <icon name="refresh" spin class="refresh"></icon>
+      </div>
+      <div id="showColumnsModal" @click.self="setShowColumnsModal()" v-show="showColumnsModal">
+        <ul>
+          <span @click="setShowColumnsModal()">
+            <icon name="times" class="modalTimes"></icon>
+          </span>
+          <li v-for="(col, index) in cols">
+            <input type="checkbox" :name="col.name" :id="col.name" v-model="col.show" @change="updateShowColumns(index)">
+            <label :for="col.name">{{ col.name }}</label>
+          </li>
+        </ul>
+      </div>
+      <div id="top-menu">
+        <div class="vet-btn-group">
+          <a role="button" class="vet-btn" @click="addRow()">
+            <icon name="plus" class="plus"></icon>
+            New
+          </a>
+          <a role="button" class="vet-btn" @click="deleteRow()">
+            <icon name="trash" class="trash"></icon>
+            Delete
+          </a>
+          <a role="button" class="vet-btn" @click="setShowColumnsModal()">
+            <icon name="eye" class="eye"></icon>
+            Show
+          </a>
+          <input 
+          type="text" 
+          name="query" 
+          v-model="filterKey" 
+          placeholder="Search" 
+          ref="search" 
+          id="search" 
+          v-if="opt.showSearchFilter">
+        </div>
+        <div class="vet-btn-group swipe-btns">
+          <a role="button" :class="[leftSwipable ? 'vet-btn' : 'vet-btn disabled']" @click="leftSwipable && swipeLeft()">
+            <icon name="arrow-left" class="arrow-left"></icon>
+          </a>
+          <a role="button" :class="[rightSwipable ? 'vet-btn' : 'vet-btn disabled']" @click="rightSwipable && swipeRight()">
+            <icon name="arrow-right" class="arrow-right"></icon>
+          </a>
+        </div>
+      </div>
+      <table class="vue-editortable" ref="table">
+        <thead>
+          <tr>
+            <th v-for="col in cols" 
+            @click="sortBy(col.name, $event)" 
+            :class="{ active: sortArray.indexOf(col.name) >= 0 }"
+            v-show="!col.hidden && col.show"
+            ref="tableHead">
+            {{ col.title }}
+            <span>
+              <icon :name="sortOrders[col.name] > 0 ? 'long-arrow-up' : 'long-arrow-down'" class="sorting"></icon>
+              {{ sortOrderNumber(col.name) }}
+            </span>
+          </th>
+        </tr>
+      </thead>
+      <tbody v-if="!loading">
+       <tr v-for="(row, rowIndex) in filteredData" 
+       @click="setSelection(filteredData[rowIndex].id.value, $event)" 
+       :class="[selectedRowArray.indexOf(filteredData[rowIndex].id.value) >= 0 ? 'activeRow' : '']">
+       <td v-for="(cell, key, index) in row" 
+       @click="setTarget(rowIndex, key)"
+       :class="[cell.isActive ? 'activeCell' : '']"
+       v-show="!cell.isHidden && cell.show"
+       :data-th="key">
+       <div class="cell-wrapper">
+        <div v-show="!cell.isActive || !cell.isEditable" ref="span">{{ cell.value }}</div>
         <input 
         type="text" 
-        name="query" 
-        v-model="filterKey" 
-        placeholder="Search" 
-        ref="search" 
-        id="search" 
-        v-if="opt.showSearchFilter">
-      </div>
-      <div class="vet-btn-group swipe-btns">
-        <a role="button" :class="[leftSwipable ? 'vet-btn' : 'vet-btn disabled']" @click="leftSwipable && swipeLeft()">
-          <icon name="arrow-left" class="arrow-left"></icon>
-        </a>
-        <a role="button" :class="[rightSwipable ? 'vet-btn' : 'vet-btn disabled']" @click="rightSwipable && swipeRight()">
-          <icon name="arrow-right" class="arrow-right"></icon>
-        </a>
-      </div>
-    </div>
-  	<table class="vue-editortable" ref="table">
-  		<thead>
-      <tr>
-        <th v-for="col in cols" 
-          @click="sortBy(col.name, $event)" 
-          :class="{ active: sortArray.indexOf(col.name) >= 0 }"
-          v-show="!col.hidden && col.show"
-          ref="tableHead">
-        {{ col.title }}
-        <span>
-          <icon :name="sortOrders[col.name] > 0 ? 'long-arrow-up' : 'long-arrow-down'" class="sorting"></icon>
-          {{ sortOrderNumber(col.name) }}
-        </span>
-        </th>
-      </tr>
-  		</thead>
-  		<tbody v-if="!loading">
-  			<tr v-for="(row, rowIndex) in filteredData" 
-        @click="setSelection(filteredData[rowIndex].id.value, $event)" 
-        :class="[selectedRowArray.indexOf(filteredData[rowIndex].id.value) >= 0 ? 'activeRow' : '']">
-  				<td v-for="(cell, key, index) in row" 
-          @click="setTarget(rowIndex, key)"
-          :class="[cell.isActive ? 'activeCell' : '']"
-          v-show="!cell.isHidden && cell.show"
-          :data-th="key">
-            <div class="cell-wrapper">
-              <div v-show="!cell.isActive || !cell.isEditable" ref="span">{{ cell.value }}</div>
-              <input 
-              type="text" 
-              name="cell"
-              spellcheck="false" 
-              v-show="cell.isActive && cell.isEditable" 
-              v-model="filteredData[rowIndex][key].value"
-              @change="saveData(key, filteredData[rowIndex][key].value, filteredData[rowIndex].id.value, $event), showSavingIcon(key, rowIndex)"
-              @keydown.left="selectCell(rowIndex, index, $event)"
-              @keydown.right="selectCell(rowIndex, index, $event)"
-              @keydown.up="selectCell(rowIndex, index, $event)"
-              @keydown.down="selectCell(rowIndex, index, $event)"
-              :class="[cell.isActive ? 'activeCell' : '']"
-              ref="inputFields">
-              <div v-show="savingIndex == rowIndex && savingKey == key" class="spinner-wrapper">
-                <icon name="spinner" spin class="spinner"></icon>
-              </div>
-            </div>
-          </td>
-  			</tr>
-  		</tbody>
-  	</table>
-    <div id="pagination" v-if="opt.pagination.show">
-      <div class="row">
-        <label for="temsPerPage">Show: </label>
-        <select class="itemsPerPageDropdown" v-model="opt.pagination.itemsPerPage" id="itemsPerPage" @change="resetCurrentPage()">
-          <option v-for="option in opt.pagination.itemsPerPageValues" v-bind:value="option.value">
-            {{ option.text }}
-          </option>
-        </select>
-      </div>
-      <div class="row numbers">
-        <a :class="[isStartPage ? 'vet-btn disabled' : 'vet-btn']" role="button" @click="showPrev" :disabled="isStartPage">&laquo;</a>
-        <div v-for="pageNumber in totalPages">
-          <a class="vet-btn disabled points" role="button" v-show="pageNumber == 2 && currentPage >= 3&& maxNumber >= 7" disabled>...</a>
-          <a :class="[currentPage == pageNumber - 1 ? 'vet-btn active' : 'vet-btn']"
-            @click="setPage(pageNumber)"
-            v-if="isInPaginationRange(pageNumber)"
-            role="button">
-            {{ pageNumber }}
-          </a>
-          <a class="vet-btn disabled points" role="button" v-show="pageNumber == maxNumber - 2 && currentPage <= maxNumber - 4 && maxNumber >= 7" disabled>...</a>
+        name="cell"
+        spellcheck="false" 
+        v-show="cell.isActive && cell.isEditable" 
+        v-model="filteredData[rowIndex][key].value"
+        @change="saveData(rowIndex, key, filteredData[rowIndex][key].value, filteredData[rowIndex].id.value, $event)"
+        @keydown.left="selectCell(rowIndex, index, $event)"
+        @keydown.right="selectCell(rowIndex, index, $event)"
+        @keydown.up="selectCell(rowIndex, index, $event)"
+        @keydown.down="selectCell(rowIndex, index, $event)"
+        :class="[cell.isActive ? 'activeCell' : '']"
+        ref="inputFields">
+        <div v-show="savingIndex == rowIndex && savingKey == key" class="spinner-wrapper">
+          <icon name="spinner" spin class="spinner"></icon>
         </div>
-        <a :class="[isEndPage ? 'vet-btn disabled' : 'vet-btn']" role="button" @click="showNext" :disabled="isEndPage">&raquo;</a>
       </div>
-    </div>
+      <div v-if="cell.hasErrors.length > 0">{{ cell.hasErrors[0] }}</div>
+    </td>
+  </tr>
+</tbody>
+</table>
+<div id="pagination" v-if="opt.pagination.show">
+  <div class="row">
+    <label for="temsPerPage">Show: </label>
+    <select class="itemsPerPageDropdown" v-model="opt.pagination.itemsPerPage" id="itemsPerPage" @change="resetCurrentPage()">
+      <option v-for="option in opt.pagination.itemsPerPageValues" v-bind:value="option.value">
+        {{ option.text }}
+      </option>
+    </select>
   </div>
+  <div class="row numbers">
+    <a :class="[isStartPage ? 'vet-btn disabled' : 'vet-btn']" role="button" @click="showPrev" :disabled="isStartPage">&laquo;</a>
+    <div v-for="pageNumber in totalPages">
+      <a class="vet-btn disabled points" role="button" v-show="pageNumber == 2 && currentPage >= 3&& maxNumber >= 7" disabled>...</a>
+      <a :class="[currentPage == pageNumber - 1 ? 'vet-btn active' : 'vet-btn']"
+      @click="setPage(pageNumber)"
+      v-if="isInPaginationRange(pageNumber)"
+      role="button">
+      {{ pageNumber }}
+    </a>
+    <a class="vet-btn disabled points" role="button" v-show="pageNumber == maxNumber - 2 && currentPage <= maxNumber - 4 && maxNumber >= 7" disabled>...</a>
+  </div>
+  <a :class="[isEndPage ? 'vet-btn disabled' : 'vet-btn']" role="button" @click="showNext" :disabled="isEndPage">&raquo;</a>
+</div>
+</div>
+</div>
 </div>
 </template>
 
@@ -137,6 +138,7 @@
   import Icon from 'vue-awesome/components/Icon';
   import Requests from '../mixins/Requests';
   import Pagination from '../mixins/Pagination';
+  import Validator from '../mixins/Validator';
 
   export default {
     props: {
@@ -158,7 +160,7 @@
     components: {
       Icon,
     },
-    mixins: [Requests, Pagination],
+    mixins: [Requests, Pagination, Validator],
     data() {
       const sortOrders = {};
       this.data.columns.forEach((key) => {
@@ -171,9 +173,9 @@
             show: true,
             itemsPerPage: 25,
             itemsPerPageValues: [
-              { text: 25, value: 25 },
-              { text: 50, value: 50 },
-              { text: 100, value: 100 },
+            { text: 25, value: 25 },
+            { text: 50, value: 50 },
+            { text: 100, value: 100 },
             ],
           },
           requests: {
@@ -514,7 +516,7 @@
         }
         for (let i = startCol; i < l; i += 1) {
           if ((sumCols() + vm.columnsWidth[nextCol] <= vm.wrapperWidth) && vm.cols[l - 1].hidden
-            && vm.cols[nextCol].hidden && vm.cols[nextCol].show) {
+          && vm.cols[nextCol].hidden && vm.cols[nextCol].show) {
             vm.$set(vm.cols[nextCol], 'hidden', false);
             for (let ii = 0; ii < ll; ii += 1) {
               vm.$set(vm.tableData[ii][vm.cols[nextCol].name], 'isHidden', false);
@@ -585,6 +587,11 @@
           } else {
             obj.show = true;
           }
+          if (Object.prototype.hasOwnProperty.call(cols[i], 'validator')) {
+            obj.validator = cols[i].validator;
+          } else {
+            obj.validator = false;
+          }
           vm.cols.push(obj);
           obj = {};
         }
@@ -607,6 +614,7 @@
               cell.isEditable = vm.cols[ii].editable;
               cell.isHidden = vm.cols[ii].hidden;
               cell.show = vm.cols[ii].show;
+              cell.hasErrors = [];
               row[vm.cols[ii].name] = cell;
               cell = {};
             }
@@ -627,11 +635,18 @@
         }
       },
       // save changed cell / post request
-      saveData(key, value, id) {
+      saveData(rowIndex, key, value, id) {
         const vm = this;
-        const postData = {};
-        postData[key] = value;
-        const data = postData;
+        vm.showSavingIcon(key, rowIndex);
+        let errors = [];
+        vm.cols.forEach((obj) => {
+          if (obj.name === key) {
+            if (obj.validator) {
+              errors = vm.validate(obj.validator.rules, obj.validator.messages, value);
+            }
+          }
+        });
+        vm.$set(vm.filteredData[rowIndex][key], 'hasErrors', errors);
         function cb() {
           vm.savingKey = false;
           vm.savingIndex = false;
@@ -640,17 +655,25 @@
           vm.savingKey = false;
           vm.savingIndex = false;
         }
-        if (vm.opt.requests.postUrl) {
-          const url = `${vm.opt.requests.patchUrl}/${id}`;
-          vm.patchData(url, data, cb, errorCb);
-        }
-        for (let i = 0; i < vm.cols.length; i += 1) {
-          if (vm.cols[i].name === key) {
-            vm.activeCol = i;
-            break;
+        if (errors.length === 0) {
+          console.log('inside save', errors.length);
+          const postData = {};
+          postData[key] = value;
+          const data = postData;
+          if (vm.opt.requests.postUrl) {
+            const url = `${vm.opt.requests.patchUrl}/${id}`;
+            vm.patchData(url, data, cb, errorCb);
           }
+          for (let i = 0; i < vm.cols.length; i += 1) {
+            if (vm.cols[i].name === key) {
+              vm.activeCol = i;
+              break;
+            }
+          }
+          vm.initTableWidths();
+        } else {
+          errorCb();
         }
-        vm.initTableWidths();
       },
       // set sorting array and key, data gets filtered (computed)
       sortBy(key, event) {
@@ -822,8 +845,8 @@
               && !vm.filteredData[ri][cols[i + 1].name].isHidden) {
               vm.setTarget(ri, cols[i + 1].name);
             } else if (vm.filteredData[ri][cols[i + 1].name].isEditable
-              && vm.filteredData[ri][cols[i + 1].name].show
-              && vm.filteredData[ri][cols[i + 1].name].isHidden) {
+            && vm.filteredData[ri][cols[i + 1].name].show
+            && vm.filteredData[ri][cols[i + 1].name].isHidden) {
               vm.swipeRight();
               vm.setTarget(ri, cols[i + 1].name);
             } else {
@@ -832,8 +855,8 @@
             }
           } else if (ri + 1 <= lastIndex) {
             if (vm.filteredData[ri + 1][cols[0].name].isEditable
-              && vm.filteredData[ri + 1][cols[0].name].show
-              && !vm.filteredData[ri + 1][cols[0].name].isHidden) {
+            && vm.filteredData[ri + 1][cols[0].name].show
+            && !vm.filteredData[ri + 1][cols[0].name].isHidden) {
               vm.tableWidth = vm.initTableWidth;
               vm.setTableWidth();
               vm.setSelection(vm.filteredData[ri + 1][cols[0].name].value, event.key);
@@ -851,8 +874,8 @@
             vm.setTableWidth();
             vm.setPage(vm.currentPage + 2);
             if (vm.filteredData[0][cols[0].name].isEditable
-              && vm.filteredData[0][cols[0].name].show
-              && !vm.filteredData[0][cols[0].name].isHidden) {
+          && vm.filteredData[0][cols[0].name].show
+          && !vm.filteredData[0][cols[0].name].isHidden) {
               vm.setSelection(vm.filteredData[0][cols[0].name].value, event.key);
               vm.setTarget(0, cols[0].name);
             } else {
@@ -868,12 +891,12 @@
           let ri = thisRowIndex;
           if (i - 1 >= 0) {
             if (vm.filteredData[ri][cols[i - 1].name].isEditable
-              && vm.filteredData[ri][cols[i - 1].name].show
-              && !vm.filteredData[ri][cols[i - 1].name].isHidden) {
+        && vm.filteredData[ri][cols[i - 1].name].show
+        && !vm.filteredData[ri][cols[i - 1].name].isHidden) {
               vm.setTarget(ri, cols[i - 1].name);
             } else if (vm.filteredData[ri][cols[i - 1].name].isEditable
-              && vm.filteredData[ri][cols[i - 1].name].show
-              && vm.filteredData[ri][cols[i - 1].name].isHidden) {
+      && vm.filteredData[ri][cols[i - 1].name].show
+      && vm.filteredData[ri][cols[i - 1].name].isHidden) {
               vm.swipeLeft();
               vm.setTarget(ri, cols[i - 1].name);
             } else {
@@ -884,8 +907,8 @@
             vm.tableWidth = vm.initTableWidth;
             vm.setTableWidthReverse();
             if (vm.filteredData[ri - 1][cols[lastCol].name].isEditable
-              && vm.filteredData[ri - 1][cols[lastCol].name].show
-              && !vm.filteredData[ri - 1][cols[lastCol].name].isHidden) {
+      && vm.filteredData[ri - 1][cols[lastCol].name].show
+      && !vm.filteredData[ri - 1][cols[lastCol].name].isHidden) {
               vm.setSelection(vm.filteredData[ri - 1][cols[0].name].value, event.key);
               vm.setTarget(ri - 1, cols[lastCol].name);
             } else {
@@ -901,8 +924,8 @@
             vm.setTableWidthReverse();
             vm.setPage(vm.currentPage);
             if (vm.filteredData[lastIndex][cols[lastCol].name].isEditable
-              && vm.filteredData[lastIndex][cols[lastCol].name].show
-              && !vm.filteredData[lastIndex][cols[lastCol].name].isHidden) {
+    && vm.filteredData[lastIndex][cols[lastCol].name].show
+    && !vm.filteredData[lastIndex][cols[lastCol].name].isHidden) {
               vm.setSelection(vm.filteredData[lastIndex][cols[0].name].value, event.key);
               vm.setTarget(lastIndex, cols[lastCol].name);
             } else {
@@ -1041,277 +1064,277 @@
 </script>
 
 <style>
-@import "http://fonts.googleapis.com/css?family=Open+Sans:300,400,700";
-#wrapper {
-  /*width: 100%;*/
-  font-family: 'Open Sans';
-  margin: 20px;
-}
-#showColumnsModal {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  top: 0;
-  left: 0;
-  z-index: 1000;
-}
-#showColumnsModal ul {
-  position: relative;
-  border-radius: 10px;
-  padding: 50px 100px;
-  background-color: #fff;
-  list-style: none;
-}
-.fa-icon.modalTimes {
-  z-index: 10000;
-  position: absolute;
-  top: 10px;
-  right: 10px; 
-  height: 1.4em; 
-}
-.vet-btn {
-  margin: 0 5px;
-  padding: 5px 10px;
-  background-color: #fff;
-  color: #112B38;
-  border: 1px solid #112B38;
-  border-radius: 5px;
-  cursor: pointer;
-}
-.vet-btn:hover {
-  background-color: #B2C61D;
-}
-.vet-btn.active {
-  background-color: #B2C61D;
-}
-.vet-btn.disabled.points {
-  color: #000;
-}
-.vet-btn.disabled {
-  cursor: default;
-  color: lightgrey;
-  border: 1px solid lightgrey;
-}
-.vet-btn.disabled:hover {
-  background-color: #fff;
-}
-.icon-vet-btn {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-flow: row nowrap;
-}
-.vet-btn-group {
-  display: flex;
-}
-.row {
-  display: flex;
-  flex-flow: row nowrap;
-  align-items: center;
-}
-.fa-icon {
-  width: auto;
-  top: 2px;
-  position: relative;
-}
-.fa-icon.sorting {
-  height: 0.8em;
-  padding: 0 2px; 
-  top: 0;
-}
-.fa-icon.refresh {
-  fill: #B2C61D;
-  height: 4em;
-}
-.fa-icon.spinner {
-  fill: #B2C61D;
-  height: 0.9em;
-}
-.spinner-wrapper {
+  @import "http://fonts.googleapis.com/css?family=Open+Sans:300,400,700";
+  #wrapper {
+    /*width: 100%;*/
+    font-family: 'Open Sans';
+    margin: 20px;
+  }
+  #showColumnsModal {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+  }
+  #showColumnsModal ul {
+    position: relative;
+    border-radius: 10px;
+    padding: 50px 100px;
+    background-color: #fff;
+    list-style: none;
+  }
+  .fa-icon.modalTimes {
+    z-index: 10000;
+    position: absolute;
+    top: 10px;
+    right: 10px; 
+    height: 1.4em; 
+  }
+  .vet-btn {
+    margin: 0 5px;
+    padding: 5px 10px;
+    background-color: #fff;
+    color: #112B38;
+    border: 1px solid #112B38;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .vet-btn:hover {
+    background-color: #B2C61D;
+  }
+  .vet-btn.active {
+    background-color: #B2C61D;
+  }
+  .vet-btn.disabled.points {
+    color: #000;
+  }
+  .vet-btn.disabled {
+    cursor: default;
+    color: lightgrey;
+    border: 1px solid lightgrey;
+  }
+  .vet-btn.disabled:hover {
+    background-color: #fff;
+  }
+  .icon-vet-btn {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-flow: row nowrap;
+  }
+  .vet-btn-group {
+    display: flex;
+  }
+  .row {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+  }
+  .fa-icon {
+    width: auto;
+    top: 2px;
+    position: relative;
+  }
+  .fa-icon.sorting {
+    height: 0.8em;
+    padding: 0 2px; 
+    top: 0;
+  }
+  .fa-icon.refresh {
+    fill: #B2C61D;
+    height: 4em;
+  }
+  .fa-icon.spinner {
+    fill: #B2C61D;
+    height: 0.9em;
+  }
+  .spinner-wrapper {
     position: absolute;
     right: 5px;
     top: 0;
-}
-table.vue-editortable {
-  /*width: 100%;*/
-  font-size: 18px;
-  color: #fff;
-  /*margin: 50px;*/
-  border-radius: .4em;
-  border-collapse: separate;
-  border-spacing: 0;
-}
-.vue-editortable th {
-  /*width: 1px;*/
-  text-align: left;
-}
-.vue-editortable th, .vue-editortable td:before {
-  color: #B2C61D;
-}
-.vue-editortable th, .vue-editortable td {
-  /*display: table-cell;*/
-  padding: 14px !important;
-  /*margin: .5em 1em;*/
-  /*border: none;*/
-  /*white-space: nowrap;*/
-}
-.vue-editortable thead tr {
-  background-color: #112B38;
-}
-.vue-editortable tbody tr:nth-child(odd) td {
-  border: 2px solid #194764;
-}
-.vue-editortable tbody tr:nth-child(odd),
-.vue-editortable tbody tr:nth-child(odd) input[type="text"] {
-  background-color: #194764;
-}
-.vue-editortable tbody tr:nth-child(even) td {
-  border: 2px solid #163D55;
-}
-.vue-editortable tbody tr:nth-child(even),
-.vue-editortable tbody tr:nth-child(even) input[type="text"] {
-  background-color: #163D55;
-}
-.vue-editortable th:first-child, .vue-editortable td:first-child {
-  padding-left: 0;
-}
-.vue-editortable th:last-child, .vue-editortable td:last-child {
-  padding-right: 0;
-}
-.vue-editortable td:first-child {
-  padding-top: .5em;
-}
-.vue-editortable td:last-child {
-  padding-bottom: .5em;
-}
-.vue-editortable input[type="text"] {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  font-size: 18px;
-  font-family: 'Open Sans';
-  appearance: none;
-  box-shadow: none;
-  border-radius: none;
-  border: none;
-  color: #fff;
-  box-sizing:border-box;
-}
-.vue-editortable input[type="text"]:focus {
-  outline: none; 
-}
-.vue-editortable th.active {
-  color: #fff;
-}
-.vue-editortable tbody tr.activeRow td {
-  border: 2px solid #2E7CA4;
-  background-color: #2E7CA4;
-}
-.vue-editortable tbody tr td.activeCell {
-  border: 2px solid #B2C61D;
-}
-.vue-editortable tbody tr input[type="text"].activeCell {
-  background-color: #2E7CA4;
-}
-.cell-wrapper {
-  position: relative;
-}
-#top-menu {
-  display: flex;
-  flex-flow: row wrap;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-#top-menu #search {
-  margin-left: 5px;
-  height: 30px;
-  font-size: 18px;
-  border: 1px solid black;
-  border-radius: 5px;
-}
-#top-menu #search:focus {
-  outline: none !important;
-  border: 1px solid #B2C61D;
-  /*box-shadow: 0 0 10px;*/
-}
-#top-menu .btn-group {
-  flex-flow: row wrap;
-}
-#lodingScreen {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(255, 255, 255, 0.8);
-  display: flex;
-  flex-flow: column nowrap;
-  justify-content: center
-}
-#pagination {
-  margin-top: 20px;
-  display: flex;
-  flex-flow: row nowrap;
-  justify-content: space-between;
-}
-#pagination a.btn.disabled:hover {
-  background-color: #fff;
-}
-
-@media only screen and (max-width: 713px) {
-  table.vue-editortable {
-    width: 100%;
   }
-.vue-editortable td:before {
-    content: attr(data-th) ": ";
-    font-weight: bold;
-    width: 6.5em;
-    display: inline-block;
-    text-transform: capitalize;
+  table.vue-editortable {
+    /*width: 100%;*/
+    font-size: 18px;
+    color: #fff;
+    /*margin: 50px;*/
+    border-radius: .4em;
+    border-collapse: separate;
+    border-spacing: 0;
   }
   .vue-editortable th {
-    display: none;
-  }
-  .vue-editortable td {
-    padding: .25em .5em;
+    /*width: 1px;*/
     text-align: left;
-    display: block;
+  }
+  .vue-editortable th, .vue-editortable td:before {
+    color: #B2C61D;
+  }
+  .vue-editortable th, .vue-editortable td {
+    /*display: table-cell;*/
+    padding: 14px !important;
+    /*margin: .5em 1em;*/
+    /*border: none;*/
+    /*white-space: nowrap;*/
+  }
+  .vue-editortable thead tr {
+    background-color: #112B38;
+  }
+  .vue-editortable tbody tr:nth-child(odd) td {
+    border: 2px solid #194764;
+  }
+  .vue-editortable tbody tr:nth-child(odd),
+  .vue-editortable tbody tr:nth-child(odd) input[type="text"] {
+    background-color: #194764;
+  }
+  .vue-editortable tbody tr:nth-child(even) td {
+    border: 2px solid #163D55;
+  }
+  .vue-editortable tbody tr:nth-child(even),
+  .vue-editortable tbody tr:nth-child(even) input[type="text"] {
+    background-color: #163D55;
+  }
+  .vue-editortable th:first-child, .vue-editortable td:first-child {
+    padding-left: 0;
+  }
+  .vue-editortable th:last-child, .vue-editortable td:last-child {
+    padding-right: 0;
+  }
+  .vue-editortable td:first-child {
+    padding-top: .5em;
+  }
+  .vue-editortable td:last-child {
+    padding-bottom: .5em;
+  }
+  .vue-editortable input[type="text"] {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    font-size: 18px;
+    font-family: 'Open Sans';
+    appearance: none;
+    box-shadow: none;
+    border-radius: none;
+    border: none;
+    color: #fff;
+    box-sizing:border-box;
+  }
+  .vue-editortable input[type="text"]:focus {
+    outline: none; 
+  }
+  .vue-editortable th.active {
+    color: #fff;
+  }
+  .vue-editortable tbody tr.activeRow td {
+    border: 2px solid #2E7CA4;
+    background-color: #2E7CA4;
+  }
+  .vue-editortable tbody tr td.activeCell {
+    border: 2px solid #B2C61D;
+  }
+  .vue-editortable tbody tr input[type="text"].activeCell {
+    background-color: #2E7CA4;
   }
   .cell-wrapper {
-    display: inline-block;
+    position: relative;
   }
-  #top-menu .btn {
-    margin: 0 20px 20px 0;
+  #top-menu {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-between;
+    margin-bottom: 20px;
   }
-  #top-menu input[type="text"] {
-    margin: 0 20px 20px 0;
+  #top-menu #search {
+    margin-left: 5px;
+    height: 30px;
+    font-size: 18px;
+    border: 1px solid black;
+    border-radius: 5px;
   }
-  .swipe-btns {
-    display: none;
+  #top-menu #search:focus {
+    outline: none !important;
+    border: 1px solid #B2C61D;
+    /*box-shadow: 0 0 10px;*/
+  }
+  #top-menu .btn-group {
+    flex-flow: row wrap;
+  }
+  #lodingScreen {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center
   }
   #pagination {
-    flex-flow: column nowrap;
+    margin-top: 20px;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
   }
-  #pagination .row {
-    margin: 0 0 20px 0;
+  #pagination a.btn.disabled:hover {
+    background-color: #fff;
   }
-  #pagination .numbers .btn {
-    font-size: 10px;
-    margin: 0 2px;
-    padding: 3px 6px;
+
+  @media only screen and (max-width: 713px) {
+    table.vue-editortable {
+      width: 100%;
+    }
+    .vue-editortable td:before {
+      content: attr(data-th) ": ";
+      font-weight: bold;
+      width: 6.5em;
+      display: inline-block;
+      text-transform: capitalize;
+    }
+    .vue-editortable th {
+      display: none;
+    }
+    .vue-editortable td {
+      padding: .25em .5em;
+      text-align: left;
+      display: block;
+    }
+    .cell-wrapper {
+      display: inline-block;
+    }
+    #top-menu .btn {
+      margin: 0 20px 20px 0;
+    }
+    #top-menu input[type="text"] {
+      margin: 0 20px 20px 0;
+    }
+    .swipe-btns {
+      display: none;
+    }
+    #pagination {
+      flex-flow: column nowrap;
+    }
+    #pagination .row {
+      margin: 0 0 20px 0;
+    }
+    #pagination .numbers .btn {
+      font-size: 10px;
+      margin: 0 2px;
+      padding: 3px 6px;
+    }
   }
-}
-@media only screen and (max-width: 400px) {
-  body {
-    margin: 0;
+  @media only screen and (max-width: 400px) {
+    body {
+      margin: 0;
+    }
+    #wrapper {
+      margin: 0;
+    }
+    #top-menu, #pagination {
+      margin: 10px;
+    }
   }
-  #wrapper {
-    margin: 0;
-  }
-  #top-menu, #pagination {
-    margin: 10px;
-  }
-}
 </style>

@@ -28,6 +28,18 @@
             title: 'Vorname',
             name: 'firstname',
             editable: true,
+            validator: {
+              rules: [
+                'required',
+                'email',
+                'contains:hansi',
+              ],
+              messages: [
+                'Field is required',
+                'Wrong email format',
+                'Must contain Hansi',
+              ],
+            },
           },
           {
             title: 'Nachname',
