@@ -30,7 +30,7 @@
             editable: true,
             validator: {
               rules: [
-                'ip4',
+                'alpha',
               ],
               messages: [
                 'Must be alpha',

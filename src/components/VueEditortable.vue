@@ -722,6 +722,7 @@
           cell.value = '';
           cell.isActive = false;
           cell.isEditable = vm.cols[i].editable;
+          cell.hasErrors = [];
           if (vm.cols[i].hidden) {
             cell.isHidden = true;
           } else {
@@ -739,17 +740,17 @@
           row[vm.cols[i].name] = cell;
           cell = {};
         }
-        vm.tableData.unshift(row);
-        vm.tableData[0].id.value = highestId + 1;
+        const thisRowIndex = vm.activeCell.rowIndex;
+        vm.tableData.splice(thisRowIndex, 0, row);
+        vm.tableData[thisRowIndex].id.value = highestId + 1;
         row = {};
         vm.$nextTick(() => {
-          vm.setTarget(0, activeKey);
-          vm.setSelection(vm.tableData[0].id.value, false);
+          vm.setTarget(thisRowIndex, activeKey);
+          vm.setSelection(vm.tableData[thisRowIndex].id.value, false);
         });
       },
       deleteRow() {
         const vm = this;
-        const options = [];
         let nextId;
         for (let i = 0; i < vm.filteredData.length; i += 1) {
           if (vm.selectedRowArray[vm.selectedRowArray.length - 1] === vm.filteredData[i].id.value) {
@@ -779,12 +780,9 @@
             str += vm.selectedRowArray[i];
             if (i + 1 < l) str += ',';
           }
-          if (vm.opt.requests.allUrl) {
-            const url = `${vm.opt.requests.allUrl}/${str}`;
-            vm.deleteData(url, options, cb, errorCb);
-          } else if (vm.opt.requests.deleteUrl) {
+          if (vm.opt.requests.deleteUrl) {
             const url = `${vm.opt.requests.deleteUrl}/${str}`;
-            vm.deleteData(url, options, cb, errorCb);
+            vm.deleteData(url, cb, errorCb);
           }
         }
       },
@@ -809,6 +807,7 @@
         if (vm.filteredData[rowIndex][key].isEditable) {
           if (vm.activeCell) vm.$set(vm.activeCell, 'isActive', false);
           vm.activeCell = vm.filteredData[rowIndex][key];
+          vm.activeCell.rowIndex = rowIndex;
           vm.$set(vm.filteredData[rowIndex][key], 'isActive', true);
           vm.$nextTick(() => {
             document.querySelector('input[name=cell].activeCell').focus();
