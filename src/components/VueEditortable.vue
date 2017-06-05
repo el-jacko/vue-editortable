@@ -615,6 +615,7 @@
               cell.isHidden = vm.cols[ii].hidden;
               cell.show = vm.cols[ii].show;
               cell.hasErrors = [];
+              cell.isNew = false;
               row[vm.cols[ii].name] = cell;
               cell = {};
             }
@@ -660,7 +661,11 @@
           const postData = {};
           postData[key] = value;
           const data = postData;
-          if (vm.opt.requests.postUrl) {
+          if (vm.filteredData[rowIndex][key].isNew && vm.opt.requests.postUrl) {
+            vm.filteredData[rowIndex][key].isNew = false;
+            const url = `${vm.opt.requests.postUrl}`;
+            vm.postData(url, data, cb, errorCb);
+          } else if (vm.opt.requests.patchUrl) {
             const url = `${vm.opt.requests.patchUrl}/${id}`;
             vm.patchData(url, data, cb, errorCb);
           }
@@ -743,6 +748,7 @@
         const thisRowIndex = vm.activeCell.rowIndex;
         vm.tableData.splice(thisRowIndex, 0, row);
         vm.tableData[thisRowIndex].id.value = highestId + 1;
+        vm.tableData[thisRowIndex][this.activeCell.col].isNew = true;
         row = {};
         vm.$nextTick(() => {
           vm.setTarget(thisRowIndex, activeKey);
@@ -808,6 +814,7 @@
           if (vm.activeCell) vm.$set(vm.activeCell, 'isActive', false);
           vm.activeCell = vm.filteredData[rowIndex][key];
           vm.activeCell.rowIndex = rowIndex;
+          vm.activeCell.col = key;
           vm.$set(vm.filteredData[rowIndex][key], 'isActive', true);
           vm.$nextTick(() => {
             document.querySelector('input[name=cell].activeCell').focus();
