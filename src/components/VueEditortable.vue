@@ -79,10 +79,10 @@
         name="cell"
         spellcheck="false" 
         v-show="cell.isActive && cell.isEditable" 
-        v-model="filteredData[rowIndex][key].value"
+        v-model="thisCell.value"
         @change="saveData(rowIndex, key, filteredData[rowIndex][key].value, filteredData[rowIndex].id.value, $event)"
-        @keydown.left="selectCell(rowIndex, index, $event)"
-        @keydown.right="selectCell(rowIndex, index, $event)"
+        @keydown.shift.left="selectCell(rowIndex, index, $event)"
+        @keydown.shift.right="selectCell(rowIndex, index, $event)"
         @keydown.up="selectCell(rowIndex, index, $event)"
         @keydown.down="selectCell(rowIndex, index, $event)"
         :class="[cell.isActive ? 'activeCell' : '']"
@@ -209,6 +209,8 @@
         map: {},
         leftSwipable: false,
         rightSwipable: true,
+        thisCell: {},
+        gotTransformed: false,
       };
     },
     created() {
@@ -748,7 +750,7 @@
         const thisRowIndex = vm.activeCell.rowIndex;
         vm.tableData.splice(thisRowIndex, 0, row);
         vm.tableData[thisRowIndex].id.value = highestId + 1;
-        vm.tableData[thisRowIndex][this.activeCell.col].isNew = true;
+        vm.tableData[thisRowIndex][vm.activeCell.col].isNew = true;
         row = {};
         vm.$nextTick(() => {
           vm.setTarget(thisRowIndex, activeKey);
@@ -810,11 +812,23 @@
       // set active cell
       setTarget(rowIndex, key) {
         const vm = this;
+        console.log('============', this.gotTransformed);
+        if (Object.keys(this.thisCell).length !== 0
+          && !this.gotTransformed
+          && (vm.activeCell.rowIndex !== rowIndex || vm.activeCell.col !== key)) {
+          vm.filteredData[vm.activeCell.rowIndex][vm.activeCell.col].value = this.thisCell.value;
+        }
         if (vm.filteredData[rowIndex][key].isEditable) {
+          if (vm.activeCell.rowIndex !== rowIndex
+            || vm.activeCell.col !== key || this.gotTransformed) {
+            vm.thisCell.value = vm.filteredData[rowIndex][key].value;
+          }
+          this.gotTransformed = false;
           if (vm.activeCell) vm.$set(vm.activeCell, 'isActive', false);
           vm.activeCell = vm.filteredData[rowIndex][key];
           vm.activeCell.rowIndex = rowIndex;
           vm.activeCell.col = key;
+          vm.activeCell.page = this.currentPage;
           vm.$set(vm.filteredData[rowIndex][key], 'isActive', true);
           vm.$nextTick(() => {
             document.querySelector('input[name=cell].activeCell').focus();
@@ -1030,6 +1044,7 @@
         let data = vm.tableData;
         // filter from search form
         if (filterKey) {
+          vm.gotTransformed = true;
           data = data.filter((row) => {
             const obj = Object.keys(row).some((key) => {
               const str = String(row[key].value).toLowerCase().indexOf(filterKey) > -1;
@@ -1052,6 +1067,7 @@
           }).reduce((cb, val) => (cb || val), 0);
         }
         if (sortKey) {
+          vm.gotTransformed = true;
           data = data.slice().sort(sortRows(sortArray));
         }
         vm.$nextTick(() => {
