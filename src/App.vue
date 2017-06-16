@@ -1,7 +1,7 @@
 <template>
   <div id="app">
   <meta name="viewport" content="width=device-width">
-    <vue-editortable :data="{ columns, options }"></vue-editortable>
+    <vue-editortable :data="{ columns, options, style }"></vue-editortable>
   </div>
 </template>
 
@@ -30,7 +30,7 @@
             editable: true,
             validator: {
               rules: [
-                'ip4',
+                'alpha',
               ],
               messages: [
                 'Must be alpha',
@@ -82,7 +82,14 @@
             // ],
           // },
         },
+        style: 'vuetify',
+        // style: 'customdark',
       };
     },
   };
 </script>
+
+<style>
+  @import "https://unpkg.com/vuetify/dist/vuetify.min.css";
+  @import "https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons";
+</style>
