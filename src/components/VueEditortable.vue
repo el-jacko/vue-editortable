@@ -864,6 +864,7 @@
         vm.tableData[thisRowIndex][vm.activeCell.col].isNew = true;
         row = {};
         vm.$nextTick(() => {
+          vm.thisCell.value = '';
           vm.setTarget(thisRowIndex, activeKey);
           vm.setSelection(vm.tableData[thisRowIndex].id.value, false);
         });
@@ -886,7 +887,16 @@
             }
           }
           vm.$nextTick(() => {
-            vm.setTarget(vm.getRowIndex(nextId), 'firstname');
+            const l = vm.cols.length;
+            let firstKey = 0;
+            for (let i = 0; i < l; i += 1) {
+              if (vm.cols[i].editable && !vm.cols[i].hidden && vm.cols[i].show) {
+                firstKey = vm.cols[i].name;
+                break;
+              }
+            }
+            vm.thisCell.value = vm.filteredData[vm.getRowIndex(nextId)].firstname.value;
+            vm.setTarget(vm.getRowIndex(nextId), firstKey);
             vm.setSelection(nextId, false);
           });
         }
@@ -928,11 +938,13 @@
           && !this.gotTransformed
           && (vm.activeCell.rowIndex !== rowIndex || vm.activeCell.col !== key)) {
           vm.filteredData[vm.activeCell.rowIndex][vm.activeCell.col].value = this.thisCell.value;
+          console.log('set filteredData');
         }
         if (vm.filteredData[rowIndex][key].isEditable) {
           if (vm.activeCell.rowIndex !== rowIndex
             || vm.activeCell.col !== key || this.gotTransformed) {
             vm.thisCell.value = vm.filteredData[rowIndex][key].value;
+            console.log('set thisCell');
           }
           this.gotTransformed = false;
           if (vm.activeCell) vm.$set(vm.activeCell, 'isActive', false);
