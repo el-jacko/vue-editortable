@@ -23,7 +23,15 @@
               </v-card-row>
               <v-card-row >
                 <v-card-text>
-                   <v-checkbox v-for="(col, index) in cols" :label="col.name" :name="col.name" v-model="col.show" @change="updateShowColumns(index)" dark></v-checkbox>
+                   <v-checkbox 
+                    v-for="(col, index) in cols" 
+                    :label="col.name" 
+                    :name="col.name" 
+                    v-model="col.show" 
+                    @change="updateShowColumns(index)" 
+                    :key="col.name" 
+                    dark>
+                  </v-checkbox>
                 </v-card-text>
               </v-card-row>
             </v-card>
@@ -126,7 +134,7 @@
                 spellcheck="false" 
                 v-show="cell.isActive && cell.isEditable" 
                 v-model="thisCell.value"
-                @change="saveData(rowIndex, key, filteredData[rowIndex][key].value, filteredData[rowIndex].id.value, $event)"
+                @change="saveData(rowIndex, key, thisCell.value, filteredData[rowIndex].id.value, $event)"
                 @keydown.shift.left="selectCell(rowIndex, index, $event)"
                 @keydown.shift.right="selectCell(rowIndex, index, $event)"
                 @keydown.up="selectCell(rowIndex, index, $event)"
@@ -761,7 +769,7 @@
           vm.savingIndex = false;
         }
         if (errors.length === 0) {
-          console.log('inside save', errors.length);
+          console.log('inside save', value);
           const postData = {};
           postData[key] = value;
           const data = postData;
