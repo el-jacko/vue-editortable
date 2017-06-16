@@ -1,10 +1,53 @@
 <template>
   <div id="wrapper" ref="wrapper">
     <div id="container">  
+
       <div id="lodingScreen" v-if="loading">
         <icon name="refresh" spin class="refresh"></icon>
       </div>
-      <div id="showColumnsModal" @click.self="setShowColumnsModal()" v-show="showColumnsModal">
+
+      <v-toolbar class="secondary vet-toolbar" light v-if="vuetify">
+        <v-btn icon light @click.native="addRow()" v-tooltip:bottom="{ html: 'Create new row' }">
+          <v-icon>create</v-icon>
+        </v-btn>
+        <v-btn icon light @click.native="deleteRow()" v-tooltip:bottom="{ html: 'Delete row' }">
+          <v-icon>delete</v-icon>
+        </v-btn>
+          <v-dialog v-model="showColumnsModal">
+            <v-btn icon light slot="activator" v-tooltip:bottom="{ html: 'Show/Hide columns' }">
+              <v-icon>remove_red_eye</v-icon>
+            </v-btn>
+            <v-card class="modal-card">
+              <v-card-row>
+                <v-card-title>Show/Hide Column</v-card-title>
+              </v-card-row>
+              <v-card-row >
+                <v-card-text>
+                   <v-checkbox v-for="(col, index) in cols" :label="col.name" :name="col.name" v-model="col.show" @change="updateShowColumns(index)" dark></v-checkbox>
+                </v-card-text>
+              </v-card-row>
+            </v-card>
+          </v-dialog>
+        <v-text-field 
+          append-icon="search" 
+          name="query" 
+          label="Search..." 
+          hide-details 
+          single-line 
+          light 
+          ref="search"
+          v-model="filterKey" 
+          v-if="opt.showSearchFilter">
+        </v-text-field>
+        <v-btn icon light :disabled="!leftSwipable" @click.native="leftSwipable && swipeLeft()" v-tooltip:bottom="{ html: 'Swipe left' }">
+          <v-icon>arrow_back</v-icon>
+        </v-btn>
+        <v-btn icon light :disabled="!rightSwipable" @click.native="rightSwipable && swipeRight()" v-tooltip:bottom="{ html: 'Swipe right' }">
+          <v-icon>arrow_forward</v-icon>
+        </v-btn>
+      </v-toolbar>
+
+      <div id="showColumnsModal" @click.self="setShowColumnsModal()" v-show="showColumnsModal" v-if="customdark">
         <ul>
           <span @click="setShowColumnsModal()">
             <icon name="times" class="modalTimes"></icon>
@@ -15,17 +58,18 @@
           </li>
         </ul>
       </div>
+
       <div id="top-menu">
         <div class="vet-btn-group">
-          <a role="button" class="vet-btn" @click="addRow()">
+          <a role="button" class="vet-btn" @click="addRow()" v-if="customdark">
             <icon name="plus" class="plus"></icon>
             New
           </a>
-          <a role="button" class="vet-btn" @click="deleteRow()">
+          <a role="button" class="vet-btn" @click="deleteRow()" v-if="customdark">
             <icon name="trash" class="trash"></icon>
             Delete
           </a>
-          <a role="button" class="vet-btn" @click="setShowColumnsModal()">
+          <a role="button" class="vet-btn" @click.native="setShowColumnsModal()" v-if="customdark">
             <icon name="eye" class="eye"></icon>
             Show
           </a>
@@ -36,92 +80,121 @@
           placeholder="Search" 
           ref="search" 
           id="search" 
-          v-if="opt.showSearchFilter">
+          v-if="opt.showSearchFilter && customdark">
         </div>
         <div class="vet-btn-group swipe-btns">
-          <a role="button" :class="[leftSwipable ? 'vet-btn' : 'vet-btn disabled']" @click="leftSwipable && swipeLeft()">
+          <a role="button" :class="[leftSwipable ? 'vet-btn' : 'vet-btn disabled']" @click="leftSwipable && swipeLeft()" v-if="customdark">
             <icon name="arrow-left" class="arrow-left"></icon>
           </a>
-          <a role="button" :class="[rightSwipable ? 'vet-btn' : 'vet-btn disabled']" @click="rightSwipable && swipeRight()">
+          <a role="button" :class="[rightSwipable ? 'vet-btn' : 'vet-btn disabled']" @click="rightSwipable && swipeRight()" v-if="customdark">
             <icon name="arrow-right" class="arrow-right"></icon>
           </a>
         </div>
       </div>
-      <table class="vue-editortable" ref="table">
+
+      <table :class="{ 'custom-dark': customdark, 'datatable table': vuetify }" ref="table">
         <thead>
           <tr>
             <th v-for="col in cols" 
             @click="sortBy(col.name, $event)" 
-            :class="{ active: sortArray.indexOf(col.name) >= 0 }"
+            :class="{ active: sortArray.indexOf(col.name) >= 0, 'align-l column sortable': vuetify, asc: sortOrders[col.name] > 0, desc: sortOrders[col.name] <= 0 }"
             v-show="!col.hidden && col.show"
             ref="tableHead">
             {{ col.title }}
             <span>
-              <icon :name="sortOrders[col.name] > 0 ? 'long-arrow-up' : 'long-arrow-down'" class="sorting"></icon>
+              <icon v-if="customdark" :name="sortOrders[col.name] > 0 ? 'long-arrow-up' : 'long-arrow-down'" class="sorting"></icon>
+              <v-icon v-if="vuetify" dark>arrow_upward</v-icon>
               {{ sortOrderNumber(col.name) }}
             </span>
           </th>
         </tr>
       </thead>
       <tbody v-if="!loading">
-       <tr v-for="(row, rowIndex) in filteredData" 
-       @click="setSelection(filteredData[rowIndex].id.value, $event)" 
-       :class="[selectedRowArray.indexOf(filteredData[rowIndex].id.value) >= 0 ? 'activeRow' : '']">
-       <td v-for="(cell, key, index) in row" 
-       @click="setTarget(rowIndex, key)"
-       :class="[cell.isActive ? 'activeCell' : '']"
-       v-show="!cell.isHidden && cell.show"
-       :data-th="key">
-       <div class="cell-wrapper">
-        <div v-show="!cell.isActive || !cell.isEditable" ref="span">{{ cell.value }}</div>
-        <input 
-        type="text" 
-        name="cell"
-        spellcheck="false" 
-        v-show="cell.isActive && cell.isEditable" 
-        v-model="thisCell.value"
-        @change="saveData(rowIndex, key, filteredData[rowIndex][key].value, filteredData[rowIndex].id.value, $event)"
-        @keydown.shift.left="selectCell(rowIndex, index, $event)"
-        @keydown.shift.right="selectCell(rowIndex, index, $event)"
-        @keydown.up="selectCell(rowIndex, index, $event)"
-        @keydown.down="selectCell(rowIndex, index, $event)"
-        :class="[cell.isActive ? 'activeCell' : '']"
-        ref="inputFields">
-        <div v-show="savingIndex == rowIndex && savingKey == key" class="spinner-wrapper">
-          <icon name="spinner" spin class="spinner"></icon>
+        <tr v-for="(row, rowIndex) in filteredData" 
+          @click="setSelection(filteredData[rowIndex].id.value, $event)" 
+          :class="[selectedRowArray.indexOf(filteredData[rowIndex].id.value) >= 0 ? 'activeRow' : '']">
+          <td v-for="(cell, key, index) in row" 
+            @click="setTarget(rowIndex, key)"
+            :class="[cell.isActive ? 'activeCell' : '']"
+            v-show="!cell.isHidden && cell.show"
+            :data-th="key">
+            <div class="cell-wrapper">
+              <div v-show="!cell.isActive || !cell.isEditable" ref="span">{{ cell.value }}</div>
+              <input 
+                type="text" 
+                name="cell"
+                spellcheck="false" 
+                v-show="cell.isActive && cell.isEditable" 
+                v-model="thisCell.value"
+                @change="saveData(rowIndex, key, filteredData[rowIndex][key].value, filteredData[rowIndex].id.value, $event)"
+                @keydown.shift.left="selectCell(rowIndex, index, $event)"
+                @keydown.shift.right="selectCell(rowIndex, index, $event)"
+                @keydown.up="selectCell(rowIndex, index, $event)"
+                @keydown.down="selectCell(rowIndex, index, $event)"
+                :class="[cell.isActive ? 'activeCell' : '']"
+                ref="inputFields">
+                <div v-show="savingIndex == rowIndex && savingKey == key" class="spinner-wrapper">
+                  <icon name="spinner" spin class="spinner"></icon>
+                </div>
+              </div>
+              <div v-if="cell.hasErrors.length > 0" class="validation-error">{{ cell.hasErrors[0] }}</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div id="pagination" v-if="opt.pagination.show">
+        <div class="row">
+          <label for="temsPerPage" v-if="customdark">Show: </label>
+          <select class="itemsPerPageDropdown" v-model="opt.pagination.itemsPerPage" id="itemsPerPage" @change="resetCurrentPage()" v-if="customdark">
+            <option v-for="option in opt.pagination.itemsPerPageValues" v-bind:value="option.value">
+              {{ option.text }}
+            </option>
+          </select>
+          <v-select
+            style="width:70px"
+            v-bind:items="opt.pagination.itemsPerPageValues"
+            v-model="opt.pagination.itemsPerPage"
+            @change.native="resetCurrentPage()"
+            label="Select"
+            dark
+            item-value="text"
+            v-if="vuetify">
+          </v-select>
+        </div>
+        <div class="row numbers">
+          <a :class="[isStartPage ? 'vet-btn disabled' : 'vet-btn']" role="button" @click="showPrev" :disabled="isStartPage" v-if="customdark">&laquo;</a>
+          <v-btn small dark default class="pagination-btn" @click.native="showPrev" :disabled="isStartPage" v-if="vuetify">
+            <v-icon>keyboard_arrow_left</v-icon>
+          </v-btn>
+          <div v-for="pageNumber in totalPages">
+            <a class="vet-btn disabled points" role="button" v-show="pageNumber == 2 && currentPage >= 3&& maxNumber >= 7" disabled v-if="customdark">...</a>
+            <a :class="[currentPage == pageNumber - 1 ? 'vet-btn active' : 'vet-btn']"
+              @click="setPage(pageNumber)"
+              v-if="customdark && isInPaginationRange(pageNumber)"
+              role="button">
+              {{ pageNumber }}
+            </a>
+            <a class="vet-btn disabled points" role="button" v-show="pageNumber == maxNumber - 2 && currentPage <= maxNumber - 4 && maxNumber >= 7" disabled v-if="customdark">...</a>
+            <v-btn small dark default class="pagination-btn" v-show="pageNumber == 2 && currentPage >= 3&& maxNumber >= 7" disabled v-if="vuetify">...</v-btn>
+            <v-btn small dark default 
+              class="pagination-btn"
+              :class="{ 'pagination-btn-active': currentPage == pageNumber - 1 }" 
+              @click.native="setPage(pageNumber)" 
+              v-if="vuetify && isInPaginationRange(pageNumber)">
+              {{ pageNumber }}
+            </v-btn>
+            <v-btn small dark default class="pagination-btn" v-show="pageNumber == maxNumber - 2 && currentPage <= maxNumber - 4 && maxNumber >= 7" disabled v-if="vuetify">...</v-btn>
+          </div>
+          <a :class="[isEndPage ? 'vet-btn disabled' : 'vet-btn']" role="button" @click="showNext" :disabled="isEndPage" v-if="customdark">&raquo;</a>
+          <v-btn small dark default class="pagination-btn" @click.native="showNext" :disabled="isEndPage" v-if="vuetify">
+            <v-icon>keyboard_arrow_right</v-icon>
+          </v-btn>
         </div>
       </div>
-      <div v-if="cell.hasErrors.length > 0" class="validation-error">{{ cell.hasErrors[0] }}</div>
-    </td>
-  </tr>
-</tbody>
-</table>
-<div id="pagination" v-if="opt.pagination.show">
-  <div class="row">
-    <label for="temsPerPage">Show: </label>
-    <select class="itemsPerPageDropdown" v-model="opt.pagination.itemsPerPage" id="itemsPerPage" @change="resetCurrentPage()">
-      <option v-for="option in opt.pagination.itemsPerPageValues" v-bind:value="option.value">
-        {{ option.text }}
-      </option>
-    </select>
+
+    </div>
   </div>
-  <div class="row numbers">
-    <a :class="[isStartPage ? 'vet-btn disabled' : 'vet-btn']" role="button" @click="showPrev" :disabled="isStartPage">&laquo;</a>
-    <div v-for="pageNumber in totalPages">
-      <a class="vet-btn disabled points" role="button" v-show="pageNumber == 2 && currentPage >= 3&& maxNumber >= 7" disabled>...</a>
-      <a :class="[currentPage == pageNumber - 1 ? 'vet-btn active' : 'vet-btn']"
-      @click="setPage(pageNumber)"
-      v-if="isInPaginationRange(pageNumber)"
-      role="button">
-      {{ pageNumber }}
-    </a>
-    <a class="vet-btn disabled points" role="button" v-show="pageNumber == maxNumber - 2 && currentPage <= maxNumber - 4 && maxNumber >= 7" disabled>...</a>
-  </div>
-  <a :class="[isEndPage ? 'vet-btn disabled' : 'vet-btn']" role="button" @click="showNext" :disabled="isEndPage">&raquo;</a>
-</div>
-</div>
-</div>
-</div>
 </template>
 
 <script>
@@ -150,6 +223,11 @@
         type: Object,
         required: false,
         default: () => {},
+      },
+      style: {
+        type: String,
+        required: false,
+        default: 'customdark',
       },
       searchQuery: {
         type: String,
@@ -186,6 +264,10 @@
             deleteUrl: false,
           },
           showSearchFilter: false,
+          style: {
+            customdark: true,
+            vuetify: false,
+          },
         },
         cols: [],
         loading: false,
@@ -211,10 +293,13 @@
         rightSwipable: true,
         thisCell: {},
         gotTransformed: false,
+        customdark: true,
+        vuetify: false,
       };
     },
     created() {
       const vm = this;
+      vm.setStyle();
       vm.setOptions();
       vm.setColumns();
       vm.setData();
@@ -540,6 +625,23 @@
           vm.rightSwipable = false;
         }
       },
+      setStyle() {
+        const style = this.data.style;
+        switch (style) {
+          case 'customdark':
+            this.customdark = true;
+            this.vuetify = false;
+            break;
+          case 'vuetify':
+            this.customdark = false;
+            this.vuetify = true;
+            break;
+          default:
+            this.customdark = true;
+            this.vuetify = false;
+            break;
+        }
+      },
       setOptions() {
         const obj = this.defaultOptions;
         const b = this.data.options;
@@ -714,6 +816,7 @@
         this.savingKey = key;
       },
       addRow() {
+        console.log('ADD ROW');
         const vm = this;
         let val;
         const highestId = Math.max(...vm.tableData.map((obj) => {
@@ -1087,6 +1190,13 @@
 
 <style>
   @import "http://fonts.googleapis.com/css?family=Open+Sans:300,400,700";
+
+  /* Helpers */
+  .align-l {
+    text-align: left;
+  }
+
+  /* custom dark styles */
   #wrapper {
     /*width: 100%;*/
     font-family: 'Open Sans';
@@ -1181,7 +1291,7 @@
     right: 5px;
     top: 0;
   }
-  table.vue-editortable {
+  table.custom-dark {
     /*width: 100%;*/
     font-size: 18px;
     color: #fff;
@@ -1190,50 +1300,50 @@
     border-collapse: separate;
     border-spacing: 0;
   }
-  .vue-editortable th {
+  .custom-dark th {
     /*width: 1px;*/
     text-align: left;
   }
-  .vue-editortable th, .vue-editortable td:before {
+  .custom-dark th, .custom-dark td:before {
     color: #B2C61D;
   }
-  .vue-editortable th, .vue-editortable td {
+  .custom-dark th, .custom-dark td {
     /*display: table-cell;*/
     padding: 14px !important;
     /*margin: .5em 1em;*/
     /*border: none;*/
     /*white-space: nowrap;*/
   }
-  .vue-editortable thead tr {
+  .custom-dark thead tr {
     background-color: #112B38;
   }
-  .vue-editortable tbody tr:nth-child(odd) td {
+  .custom-dark tbody tr:nth-child(odd) td {
     border: 2px solid #194764;
   }
-  .vue-editortable tbody tr:nth-child(odd),
-  .vue-editortable tbody tr:nth-child(odd) input[type="text"] {
+  .custom-dark tbody tr:nth-child(odd),
+  .custom-dark tbody tr:nth-child(odd) input[type="text"] {
     background-color: #194764;
   }
-  .vue-editortable tbody tr:nth-child(even) td {
+  .custom-dark tbody tr:nth-child(even) td {
     border: 2px solid #163D55;
   }
-  .vue-editortable tbody tr:nth-child(even),
-  .vue-editortable tbody tr:nth-child(even) input[type="text"] {
+  .custom-dark tbody tr:nth-child(even),
+  .custom-dark tbody tr:nth-child(even) input[type="text"] {
     background-color: #163D55;
   }
-  .vue-editortable th:first-child, .vue-editortable td:first-child {
+  .custom-dark th:first-child, .custom-dark td:first-child {
     padding-left: 0;
   }
-  .vue-editortable th:last-child, .vue-editortable td:last-child {
+  .custom-dark th:last-child, .custom-dark td:last-child {
     padding-right: 0;
   }
-  .vue-editortable td:first-child {
+  .custom-dark td:first-child {
     padding-top: .5em;
   }
-  .vue-editortable td:last-child {
+  .custom-dark td:last-child {
     padding-bottom: .5em;
   }
-  .vue-editortable input[type="text"] {
+  .custom-dark input[type="text"] {
     margin: 0;
     padding: 0;
     width: 100%;
@@ -1246,20 +1356,20 @@
     color: #fff;
     box-sizing:border-box;
   }
-  .vue-editortable input[type="text"]:focus {
+  .custom-dark input[type="text"]:focus {
     outline: none; 
   }
-  .vue-editortable th.active {
+  .custom-dark th.active {
     color: #fff;
   }
-  .vue-editortable tbody tr.activeRow td {
+  .custom-dark tbody tr.activeRow td {
     border: 2px solid #2E7CA4;
     background-color: #2E7CA4;
   }
-  .vue-editortable tbody tr td.activeCell {
+  .custom-dark tbody tr td.activeCell {
     border: 2px solid #B2C61D;
   }
-  .vue-editortable tbody tr input[type="text"].activeCell {
+  .custom-dark tbody tr input[type="text"].activeCell {
     background-color: #2E7CA4;
   }
   .cell-wrapper {
@@ -1305,25 +1415,25 @@
     background-color: #fff;
   }
   .validation-error {
-    color: red;
+    color: rgb(208, 0, 0);
     font-size: 0.8em;
   }
 
   @media only screen and (max-width: 713px) {
-    table.vue-editortable {
+    table.custom-dark {
       width: 100%;
     }
-    .vue-editortable td:before {
+    .custom-dark td:before {
       content: attr(data-th) ": ";
       font-weight: bold;
       width: 6.5em;
       display: inline-block;
       text-transform: capitalize;
     }
-    .vue-editortable th {
+    .custom-dark th {
       display: none;
     }
-    .vue-editortable td {
+    .custom-dark td {
       padding: .25em .5em;
       text-align: left;
       display: block;
@@ -1363,4 +1473,36 @@
       margin: 10px;
     }
   }
+
+  /* Vuetify */
+  .pagination-btn {
+    min-width: auto;
+    padding: 0 10px;
+  }
+  .pagination-btn-active {
+    background-color: rgba(0,0,0,.3)
+  }
+  .modal-card {
+    background-color: #fff;
+  }
+  .vet-toolbar {
+    z-index: 5;
+  }
+  .datatable tbody tr.activeRow td {
+    /*border: 2px solid #2E7CA4;*/
+    /*background-color: #2E7CA4;*/
+    background: rgba(0,0,0,.12);
+  }
+  .datatable tbody tr td.activeCell {
+    /*border: 1px solid #000;*/
+    background: rgba(0,0,0,.35);
+    color: #fff;
+  }
+  .datatable tbody tr input[type="text"].activeCell {
+    /*background: rgba(0,0,0,.12);*/
+  }
+  .datatable input[type="text"]:focus {
+    outline: none; 
+  }
 </style>
+
