@@ -1,5 +1,5 @@
 <template>
-  <div id="wrapper" ref="wrapper">
+  <div id="wrapper" ref="wrapper" :class="customdark && 'open-sans'">
     <div id="container">  
 
       <div id="lodingScreen" v-if="loading">
@@ -77,7 +77,7 @@
             <icon name="trash" class="trash"></icon>
             Delete
           </a>
-          <a role="button" class="vet-btn" @click.native="setShowColumnsModal()" v-if="customdark">
+          <a role="button" class="vet-btn" @click="setShowColumnsModal()" v-if="customdark">
             <icon name="eye" class="eye"></icon>
             Show
           </a>
@@ -164,7 +164,7 @@
             v-bind:items="opt.pagination.itemsPerPageValues"
             v-model="opt.pagination.itemsPerPage"
             @change.native="resetCurrentPage()"
-            label="Select"
+            label="Show:"
             dark
             item-value="text"
             v-if="vuetify">
@@ -715,6 +715,7 @@
         vm.loading = true;
         let rawData = {};
         function cb(response) {
+          console.log('SET DATA', response);
           rawData = response.data;
           const l = rawData.length;
           for (let i = 0; i < l; i += 1) {
@@ -742,7 +743,7 @@
         }
         // get data from prop values if set or from api if url is set
         if (vm.data.values !== undefined) {
-          rawData.data = vm.data.values;
+          rawData = vm.data.values;
           cb(rawData);
         } else if (vm.opt.requests.getUrl) {
           vm.getData(vm.opt.requests.getUrl, cb, errorCb);
@@ -1170,6 +1171,7 @@
         }
       },
       setShowColumnsModal() {
+        console.log('show columns modal', this.showColumnsModal);
         this.showColumnsModal = !this.showColumnsModal;
       },
       updateShowColumns(index) {
@@ -1249,8 +1251,10 @@
   /* custom dark styles */
   #wrapper {
     /*width: 100%;*/
-    font-family: 'Open Sans';
     margin: 20px;
+  }
+  .open-sans {
+    font-family: 'Open Sans';
   }
   #showColumnsModal {
     position: fixed;

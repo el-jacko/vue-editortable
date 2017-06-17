@@ -11,11 +11,13 @@
 > * Multisorting
 > * Searchfilter
 > * dynamic Pagination
+> * Validation
 
 ---
 ## Demo
 
-Demo page will be coming soon!
+[Vue-editortable Demo 1 - Vuetify Style] (http://vue-editortable-vuetify.eljacko.de/)
+[Vue-editortable Demo 2 - Custom Dark Style] (http://vue-editortable-customdark.eljacko.de/)
 
 ---
 ## Dependencies
@@ -23,10 +25,10 @@ Demo page will be coming soon!
 Only Vue.js, no other frameworks/libraries
 * Vue.js >= 2.0 (tested with 2.2.2)
 * Vue-awesome (included)
-* Vue-resource (not included)
+* Axios (included)
 
 ---
-## Browser Compatability
+## Browser compatibility
 
 Only tested browser by now is Chrome.
 Feel free to test and share your results.
@@ -129,7 +131,6 @@ For detailed explanation on how things work, checkout the [guide](http://vuejs-t
 Some major TODOs:
 * error messages
 * implementing Datatypes
-* validation
 * filter per columns
 * optional Modal before deleting
 * compatibility with CSS Frameworks (Bootstrap, Semantic, Foundation)
