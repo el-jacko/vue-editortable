@@ -8,7 +8,7 @@
 <script>
   import VueEditortable from './components/VueEditortable';
 
-  // const values = require('../json/sample1.json');
+  // const values = require('../json/sample3.json');
 
   export default {
     name: 'app',
