@@ -824,8 +824,12 @@
         this.savingKey = key;
       },
       addRow() {
-        console.log('ADD ROW');
         const vm = this;
+        vm.saveData(vm.activeCell.rowIndex,
+          vm.activeCell.col,
+          vm.thisCell.value,
+          vm.filteredData[vm.activeCell.rowIndex].id.value);
+        vm.filteredData[vm.activeCell.rowIndex][vm.activeCell.col].value = vm.thisCell.value;
         let val;
         const highestId = Math.max(...vm.tableData.map((obj) => {
           val = obj.id.value;
