@@ -318,28 +318,29 @@
       shortcuts(e) {
         const vm = this;
         vm.map[e.keyCode] = e.type === 'keydown';
-        // alt + arrow left -> swipeleft
-        if (vm.map[18] && vm.map[37]) {
+        console.log(e.keyCode);
+        // ctrl + arrow left -> swipeleft
+        if (vm.map[17] && vm.map[37]) {
           vm.swipeLeft();
           vm.map[37] = false;
         }
-        // alt + arrow right -> swiperight
-        if (vm.map[18] && vm.map[39]) {
+        // ctrl + arrow right -> swiperight
+        if (vm.map[17] && vm.map[39]) {
           vm.swipeRight();
           vm.map[39] = false;
         }
-        // alt + f -> focus search
-        if (vm.map[18] && vm.map[70]) {
+        // ctrl + f -> focus search
+        if (vm.map[17] && vm.map[70]) {
           e.preventDefault();
           vm.$refs.search.focus();
         }
-        // alt + n -> add new row
-        if (vm.map[18] && vm.map[78]) {
+        // ctrl + n -> add new row
+        if (vm.map[17] && vm.map[78]) {
           e.preventDefault();
           vm.addRow();
         }
-        // alt + backspace || alt + delete -> delete row
-        if ((vm.map[18] && vm.map[8]) || (vm.map[18] && vm.map[46])) {
+        // ctrl + backspace || ctrl + delete -> delete row
+        if ((vm.map[17] && vm.map[8]) || (vm.map[17] && vm.map[46])) {
           e.preventDefault();
           vm.deleteRow();
         }
@@ -760,7 +761,13 @@
           }
         });
         vm.$set(vm.filteredData[rowIndex][key], 'hasErrors', errors);
-        function cb() {
+        function postCb(response) {
+          console.log(response.data.id);
+          vm.filteredData[rowIndex].id.value = response.data.id;
+          vm.savingKey = false;
+          vm.savingIndex = false;
+        }
+        function patchCb() {
           vm.savingKey = false;
           vm.savingIndex = false;
         }
@@ -776,10 +783,10 @@
           if (vm.filteredData[rowIndex][key].isNew && vm.opt.requests.postUrl) {
             vm.filteredData[rowIndex][key].isNew = false;
             const url = `${vm.opt.requests.postUrl}`;
-            vm.postData(url, data, cb, errorCb);
+            vm.postData(url, data, postCb, errorCb);
           } else if (vm.opt.requests.patchUrl) {
             const url = `${vm.opt.requests.patchUrl}/${id}`;
-            vm.patchData(url, data, cb, errorCb);
+            vm.patchData(url, data, patchCb, errorCb);
           }
           for (let i = 0; i < vm.cols.length; i += 1) {
             if (vm.cols[i].name === key) {
@@ -825,11 +832,23 @@
       },
       addRow() {
         const vm = this;
-        vm.saveData(vm.activeCell.rowIndex,
+        if (vm.activeCell) {
+          vm.saveData(vm.activeCell.rowIndex,
           vm.activeCell.col,
           vm.thisCell.value,
           vm.filteredData[vm.activeCell.rowIndex].id.value);
-        vm.filteredData[vm.activeCell.rowIndex][vm.activeCell.col].value = vm.thisCell.value;
+          vm.filteredData[vm.activeCell.rowIndex][vm.activeCell.col].value = vm.thisCell.value;
+        } else {
+          vm.activeCell = {};
+          vm.activeCell.rowIndex = 0;
+          const l = vm.cols.length;
+          for (let i = 0; i < l; i += 1) {
+            if (vm.cols[i].editable && !vm.cols[i].hidden && vm.cols[i].show) {
+              vm.activeCell.col = vm.cols[i].name;
+              break;
+            }
+          }
+        }
         let val;
         const highestId = Math.max(...vm.tableData.map((obj) => {
           val = obj.id.value;
@@ -868,6 +887,9 @@
         vm.tableData[thisRowIndex][vm.activeCell.col].isNew = true;
         row = {};
         vm.$nextTick(() => {
+          // TO DO:
+          // check if sorting is active
+          // if active, -> set focus get new rowindex
           vm.thisCell.value = '';
           vm.setTarget(thisRowIndex, activeKey);
           vm.setSelection(vm.tableData[thisRowIndex].id.value, false);
@@ -875,12 +897,6 @@
       },
       deleteRow() {
         const vm = this;
-        let nextId;
-        for (let i = 0; i < vm.filteredData.length; i += 1) {
-          if (vm.selectedRowArray[vm.selectedRowArray.length - 1] === vm.filteredData[i].id.value) {
-            nextId = vm.filteredData[i + 1].id.value;
-          }
-        }
         function cb() {
           for (let i = 0; i < vm.selectedRowArray.length; i += 1) {
             for (let ii = 0; ii < vm.tableData.length; ii += 1) {
@@ -899,7 +915,17 @@
                 break;
               }
             }
-            vm.thisCell.value = vm.filteredData[vm.getRowIndex(nextId)].firstname.value;
+            let nextId;
+            const highestId = Math.max(...vm.selectedRowArray);
+            for (let i = 0; i < vm.filteredData.length; i += 1) {
+              if (highestId === vm.filteredData[i].id.value) {
+                nextId = vm.filteredData[i + 1].id.value;
+              }
+            }
+            if (typeof nextId === 'undefined') {
+              nextId = vm.filteredData[0].id.value;
+            }
+            vm.thisCell.value = vm.filteredData[vm.getRowIndex(nextId)][firstKey].value;
             vm.setTarget(vm.getRowIndex(nextId), firstKey);
             vm.setSelection(nextId, false);
           });
