@@ -18,6 +18,7 @@
 
 * [Vue-editortable Demo 1 - Vuetify Style](http://vue-editortable-vuetify.eljacko.de/)
 * [Vue-editortable Demo 2 - Custom Dark Style](http://vue-editortable-customdark.eljacko.de/)
+The database connection is disabled.
 
 ---
 ## Dependencies
