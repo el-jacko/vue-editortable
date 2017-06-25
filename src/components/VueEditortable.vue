@@ -232,7 +232,7 @@
         required: false,
         default: () => {},
       },
-      style: {
+      styling: {
         type: String,
         required: false,
         default: 'customdark',
@@ -259,9 +259,9 @@
             show: true,
             itemsPerPage: 25,
             itemsPerPageValues: [
-            { text: 25, value: 25 },
-            { text: 50, value: 50 },
-            { text: 100, value: 100 },
+              { text: 25, value: 25 },
+              { text: 50, value: 50 },
+              { text: 100, value: 100 },
             ],
           },
           requests: {
@@ -271,7 +271,7 @@
             patchUrl: false,
             deleteUrl: false,
           },
-          showSearchFilter: false,
+          showSearchFilter: true,
           style: {
             customdark: true,
             vuetify: false,
@@ -311,14 +311,13 @@
       vm.setOptions();
       vm.setColumns();
       vm.setData();
-      window.addEventListener('keydown', this.shortcuts);
-      window.addEventListener('keyup', this.shortcuts);
+      window.addEventListener('keydown', vm.shortcuts);
+      window.addEventListener('keyup', vm.shortcuts);
     },
     methods: {
       shortcuts(e) {
         const vm = this;
         vm.map[e.keyCode] = e.type === 'keydown';
-        console.log(e.keyCode);
         // ctrl + arrow left -> swipeleft
         if (vm.map[17] && vm.map[37]) {
           vm.swipeLeft();
@@ -344,24 +343,6 @@
           e.preventDefault();
           vm.deleteRow();
         }
-      },
-      getWrapperWidth() {
-        const vm = this;
-        vm.wrapperWidth = vm.$el.clientWidth;
-      },
-      getTableWidth() {
-        const vm = this;
-        const ths = vm.$refs.tableHead;
-        let res = 0;
-        for (let i = 0; i < ths.length; i += 1) {
-          res += ths[i].offsetWidth;
-        }
-        vm.tableWidth = res;
-        if (vm.initTableWidth === 0) {
-          vm.initTableWidth = vm.tableWidth;
-        }
-        vm.getWrapperWidth();
-        vm.setTableWidth();
       },
       getColumnsWidth() {
         const vm = this;
@@ -399,30 +380,26 @@
           }
         }
         vm.$nextTick(() => {
-          vm.doInitTableWidths = false;
           vm.getTableWidth();
         });
       },
-      initTableWidths() {
+      getTableWidth() {
         const vm = this;
-        const ratio = window.devicePixelRatio || 1;
-        const w = screen.width * ratio;
-        if ((w / ratio) > 713) {
-          const l = vm.cols.length;
-          for (let i = 0; i < l; i += 1) {
-            if (vm.cols[i].hidden) {
-              vm.$set(vm.cols[i], 'hidden', false);
-              const ll = vm.tableData.length;
-              for (let ii = 0; ii < ll; ii += 1) {
-                vm.$set(vm.tableData[ii][vm.cols[i].name], 'isHidden', false);
-              }
-            }
-          }
-          vm.$nextTick(() => {
-            vm.initTableWidth = 0;
-            vm.getColumnsWidth();
-          });
+        const ths = vm.$refs.tableHead;
+        let res = 0;
+        for (let i = 0; i < ths.length; i += 1) {
+          res += ths[i].offsetWidth;
         }
+        vm.tableWidth = res;
+        if (vm.initTableWidth === 0) {
+          vm.initTableWidth = vm.tableWidth;
+        }
+        vm.getWrapperWidth();
+        vm.setTableWidth();
+      },
+      getWrapperWidth() {
+        const vm = this;
+        vm.wrapperWidth = vm.$el.clientWidth;
       },
       setTableWidth() {
         const vm = this;
@@ -516,6 +493,27 @@
           });
         }
       },
+      resetTableWidths() {
+        const vm = this;
+        const ratio = window.devicePixelRatio || 1;
+        const w = screen.width * ratio;
+        if ((w / ratio) > 713) {
+          const l = vm.cols.length;
+          for (let i = 0; i < l; i += 1) {
+            if (vm.cols[i].hidden) {
+              vm.$set(vm.cols[i], 'hidden', false);
+              const ll = vm.tableData.length;
+              for (let ii = 0; ii < ll; ii += 1) {
+                vm.$set(vm.tableData[ii][vm.cols[i].name], 'isHidden', false);
+              }
+            }
+          }
+          vm.$nextTick(() => {
+            vm.initTableWidth = 0;
+            vm.getColumnsWidth();
+          });
+        }
+      },
       swipeLeft() {
         const vm = this;
         const l = vm.cols.length;
@@ -539,7 +537,7 @@
           let sum = 0;
           for (let i = 0; i < vm.columnsWidth.length; i += 1) {
             if (!vm.cols[i].hidden) {
-              sum += vm.columnsWidth[i] + 32;
+              sum += vm.columnsWidth[i] + 48;
             }
           }
           return sum;
@@ -598,7 +596,7 @@
           let sum = 0;
           for (let i = 0; i < vm.columnsWidth.length; i += 1) {
             if (!vm.cols[i].hidden) {
-              sum += vm.columnsWidth[i] + 32;
+              sum += vm.columnsWidth[i] + 48;
             }
           }
           return sum;
@@ -678,12 +676,10 @@
           if (Object.prototype.hasOwnProperty.call(cols[i], 'title')) {
             obj.title = cols[i].title;
           } else {
-            obj.title = 'defaultTitle';
+            obj.title = cols[i].name;
           }
           if (Object.prototype.hasOwnProperty.call(cols[i], 'name')) {
             obj.name = cols[i].name;
-          } else {
-            obj.name = 'defaultName';
           }
           if (Object.prototype.hasOwnProperty.call(cols[i], 'editable')) {
             obj.editable = cols[i].editable;
@@ -715,7 +711,6 @@
         vm.loading = true;
         let rawData = {};
         function cb(response) {
-          console.log('SET DATA', response);
           rawData = response.data;
           const l = rawData.length;
           for (let i = 0; i < l; i += 1) {
@@ -763,7 +758,6 @@
         });
         vm.$set(vm.filteredData[rowIndex][key], 'hasErrors', errors);
         function postCb(response) {
-          console.log(response.data.id);
           vm.filteredData[rowIndex].id.value = response.data.id;
           vm.savingKey = false;
           vm.savingIndex = false;
@@ -777,7 +771,6 @@
           vm.savingIndex = false;
         }
         if (errors.length === 0) {
-          console.log('inside save', value);
           const postData = {};
           postData[key] = value;
           const data = postData;
@@ -795,7 +788,7 @@
               break;
             }
           }
-          vm.initTableWidths();
+          vm.resetTableWidths();
         } else {
           errorCb();
         }
@@ -964,18 +957,15 @@
       // set active cell
       setTarget(rowIndex, key) {
         const vm = this;
-        console.log('============', this.gotTransformed);
         if (Object.keys(this.thisCell).length !== 0
           && !this.gotTransformed
           && (vm.activeCell.rowIndex !== rowIndex || vm.activeCell.col !== key)) {
           vm.filteredData[vm.activeCell.rowIndex][vm.activeCell.col].value = this.thisCell.value;
-          console.log('set filteredData');
         }
         if (vm.filteredData[rowIndex][key].isEditable) {
           if (vm.activeCell.rowIndex !== rowIndex
             || vm.activeCell.col !== key || this.gotTransformed) {
             vm.thisCell.value = vm.filteredData[rowIndex][key].value;
-            console.log('set thisCell');
           }
           this.gotTransformed = false;
           if (vm.activeCell) vm.$set(vm.activeCell, 'isActive', false);
@@ -1171,7 +1161,6 @@
         }
       },
       setShowColumnsModal() {
-        console.log('show columns modal', this.showColumnsModal);
         this.showColumnsModal = !this.showColumnsModal;
       },
       updateShowColumns(index) {
@@ -1186,7 +1175,7 @@
             vm.$set(vm.tableData[i][vm.cols[index].name], 'show', true);
           }
         }
-        vm.initTableWidths();
+        vm.resetTableWidths();
       },
     },
     computed: {
@@ -1540,7 +1529,7 @@
     background-color: #fff;
   }
   .vet-toolbar {
-    z-index: 5;
+    z-index: 2;
   }
   .datatable tbody tr.activeRow td {
     /*border: 2px solid #2E7CA4;*/

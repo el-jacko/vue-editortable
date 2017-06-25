@@ -1,7 +1,7 @@
 <template>
   <div id="app">
   <meta name="viewport" content="width=device-width">
-    <vue-editortable :data="{ columns, options, style }"></vue-editortable>
+    <vue-editortable :data="{ columns, options, styling }"></vue-editortable>
   </div>
 </template>
 
@@ -82,8 +82,8 @@
             // ],
           // },
         },
-        style: 'vuetify',
-        // style: 'customdark',
+        styling: 'vuetify',
+        // styling: 'customdark',
       };
     },
   };

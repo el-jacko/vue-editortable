@@ -18,15 +18,16 @@
 
 * [Vue-editortable Demo 1 - Vuetify Style](http://vue-editortable-vuetify.eljacko.de/)
 * [Vue-editortable Demo 2 - Custom Dark Style](http://vue-editortable-customdark.eljacko.de/)
-The database connection is disabled.
+* The database connection is disabled on the demo pages.
 
 ---
 ## Dependencies
 
 Only Vue.js, no other frameworks/libraries
 * Vue.js >= 2.0 (tested with 2.2.2)
-* Vue-awesome (included)
-* Axios (included)
+* Vue-awesome Icons
+* Axios
+* validator
 
 ---
 ## Browser compatibility
