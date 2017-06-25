@@ -272,7 +272,7 @@
             deleteUrl: false,
           },
           showSearchFilter: true,
-          style: {
+          styling: {
             customdark: true,
             vuetify: false,
           },
@@ -298,7 +298,7 @@
         activeCol: 0,
         map: {},
         leftSwipable: false,
-        rightSwipable: true,
+        rightSwipable: false,
         thisCell: {},
         gotTransformed: false,
         customdark: true,
@@ -455,6 +455,7 @@
                 vm.swipeRight();
               }
             }
+            vm.setSwipable();
           });
         });
       },
@@ -633,7 +634,7 @@
         }
       },
       setStyle() {
-        const style = this.data.style;
+        const style = this.data.styling;
         switch (style) {
           case 'customdark':
             this.customdark = true;
@@ -705,13 +706,24 @@
           obj = {};
         }
       },
+      setSwipable() {
+        const vm = this;
+        const l = vm.cols.length;
+        if (vm.cols[l - 1].hidden) {
+          vm.rightSwipable = true;
+        }
+      },
       // set data Object with all needed and given options
       setData() {
         const vm = this;
         vm.loading = true;
         let rawData = {};
         function cb(response) {
-          rawData = response.data;
+          if (typeof (response.data.data) !== 'undefined') {
+            rawData = response.data.data;
+          } else if (typeof (response.data) !== 'undefined') {
+            rawData = response.data;
+          }
           const l = rawData.length;
           for (let i = 0; i < l; i += 1) {
             let row = {};
