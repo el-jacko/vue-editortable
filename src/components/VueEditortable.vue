@@ -1,5 +1,5 @@
 <template>
-  <div id="wrapper" ref="wrapper" :class="customdark && 'open-sans'">
+  <div id="wrapper" :class="customdark && 'open-sans'">
     <div id="container">  
 
       <div id="lodingScreen" v-if="loading">
@@ -220,6 +220,7 @@
   import Requests from '../mixins/Requests';
   import Pagination from '../mixins/Pagination';
   import Validator from '../mixins/Validator';
+  import VetEventBus from '../helpers/event-bus';
 
   export default {
     props: {
@@ -313,6 +314,14 @@
       vm.setData();
       window.addEventListener('keydown', vm.shortcuts);
       window.addEventListener('keyup', vm.shortcuts);
+      VetEventBus.$on('resizeTable', () => {
+        this.resetTableWidths();
+      });
+    },
+    beforeDestroy() {
+      VetEventBus.$off('resizeTable', () => {
+        this.resetTableWidths();
+      });
     },
     methods: {
       shortcuts(e) {
@@ -445,9 +454,10 @@
             }
           }
           if (sum === vm.initTableWidth) {
-            vm.$refs.wrapper.style.display = 'flex';
-            vm.$refs.wrapper.style.flexFlow = 'column nowrap';
-            vm.$refs.wrapper.style.alignItems = 'center';
+            const container = vm.$el.querySelector('#container');
+            container.style.display = 'flex';
+            container.style.flexFlow = 'column nowrap';
+            container.style.alignItems = 'center';
           }
           vm.$nextTick(() => {
             for (let i = 0; i < vm.activeCol; i += 1) {
@@ -1251,8 +1261,11 @@
 
   /* custom dark styles */
   #wrapper {
-    /*width: 100%;*/
+    position: relative;
     margin: 20px;
+  }
+  #container {
+    overflow-y: hidden;
   }
   .open-sans {
     font-family: 'Open Sans';
@@ -1542,6 +1555,7 @@
   }
   .vet-toolbar {
     z-index: 2;
+    position: absolute;
   }
   .datatable tbody tr.activeRow td {
     /*border: 2px solid #2E7CA4;*/
