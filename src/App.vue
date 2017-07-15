@@ -1,5 +1,13 @@
 <template>
-  <div id="app">
+<!-- <v-app id="app">
+   <main>
+      <v-container fluid>
+        <vue-editortable :data="{ columns, options, styling }"></vue-editortable>
+      </v-container>
+    </main> 
+  </v-app>
+ -->  
+ <div id="app">
   <meta name="viewport" content="width=device-width">
     <vue-editortable :data="{ columns, options, styling }"></vue-editortable>
   </div>
@@ -41,11 +49,27 @@
             title: 'Nachname',
             name: 'lastname',
             editable: true,
+            validator: {
+              rules: [
+                'required',
+              ],
+              messages: [
+                'Must be required',
+              ],
+            },
           },
           {
             title: 'Email',
             name: 'email',
             editable: true,
+            validator: {
+              rules: [
+                'required',
+              ],
+              messages: [
+                'Must be required',
+              ],
+            },
           },
           {
             title: 'Alter',
@@ -92,4 +116,7 @@
 <style>
   @import "https://unpkg.com/vuetify/dist/vuetify.min.css";
   @import "https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons";
+  html {
+    padding-right: 0px !important;
+  }
 </style>

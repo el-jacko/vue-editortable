@@ -6,36 +6,37 @@
         <icon name="refresh" spin class="refresh"></icon>
       </div>
 
-      <v-toolbar class="secondary vet-toolbar" light v-if="vuetify">
+      <v-toolbar light class="vet-toolbar" v-if="vuetify">
         <v-btn icon light @click.native="addRow()" v-tooltip:bottom="{ html: 'Create new row' }">
           <v-icon>create</v-icon>
         </v-btn>
         <v-btn icon light @click.native="deleteRow()" v-tooltip:bottom="{ html: 'Delete row' }">
           <v-icon>delete</v-icon>
         </v-btn>
-          <v-dialog v-model="showColumnsModal">
-            <v-btn icon light slot="activator" v-tooltip:bottom="{ html: 'Show/Hide columns' }">
-              <v-icon>remove_red_eye</v-icon>
-            </v-btn>
-            <v-card class="modal-card">
-              <v-card-row>
-                <v-card-title>Show/Hide Column</v-card-title>
-              </v-card-row>
-              <v-card-row >
-                <v-card-text>
-                   <v-checkbox 
-                    v-for="(col, index) in cols" 
-                    :label="col.name" 
-                    :name="col.name" 
-                    v-model="col.show" 
-                    @change="updateShowColumns(index)" 
-                    :key="col.name" 
-                    dark>
-                  </v-checkbox>
-                </v-card-text>
-              </v-card-row>
-            </v-card>
-          </v-dialog>
+        <v-dialog v-model="showColumnsModal">
+          <v-btn icon light slot="activator" v-tooltip:bottom="{ html: 'Show/Hide columns' }">
+            <v-icon>remove_red_eye</v-icon>
+          </v-btn>
+          <v-card class="modal-card">
+            <v-card-row>
+              <v-card-title>Show/Hide Column</v-card-title>
+            </v-card-row>
+            <v-card-row >
+              <v-card-text>
+                 <v-checkbox 
+                  v-for="(col, index) in cols" 
+                  :label="col.name" 
+                  :name="col.name" 
+                  v-model="col.show" 
+                  @change="updateShowColumns(index)" 
+                  :key="col.name" 
+                  dark>
+                </v-checkbox>
+              </v-card-text>
+            </v-card-row>
+          </v-card>
+        </v-dialog>
+        <!-- <v-spacer></v-spacer> -->
         <v-text-field 
           append-icon="search" 
           name="query" 
@@ -47,6 +48,7 @@
           v-model="filterKey" 
           v-if="opt.showSearchFilter">
         </v-text-field>
+        <!-- <v-spacer></v-spacer> -->
         <v-btn icon light :disabled="!leftSwipable" @click.native="leftSwipable && swipeLeft()" v-tooltip:bottom="{ html: 'Swipe left' }">
           <v-icon>arrow_back</v-icon>
         </v-btn>
@@ -54,6 +56,7 @@
           <v-icon>arrow_forward</v-icon>
         </v-btn>
       </v-toolbar>
+      <div v-if="vuetify" class="spacer-top"></div>
 
       <div id="showColumnsModal" @click.self="setShowColumnsModal()" v-show="showColumnsModal" v-if="customdark">
         <ul>
@@ -100,7 +103,7 @@
         </div>
       </div>
 
-      <table :class="{ 'custom-dark': customdark, 'datatable table': vuetify }" ref="table">
+      <table class="vet-table" :class="{ 'custom-dark': customdark, 'datatable table': vuetify }" ref="table">
         <thead>
           <tr>
             <th v-for="col in cols" 
@@ -1267,6 +1270,9 @@
   #container {
     overflow-y: hidden;
   }
+  .dialog__content {
+    z-index: 1000;
+  }
   .open-sans {
     font-family: 'Open Sans';
   }
@@ -1483,8 +1489,16 @@
     background-color: #fff;
   }
   .validation-error {
+    position: absolute;
+    bottom: 0;
     color: rgb(208, 0, 0);
     font-size: 0.8em;
+  }
+  .table.datatable {
+    position: relative;
+  }
+  .vet-table td {
+    position: relative;
   }
 
   @media only screen and (max-width: 713px) {
@@ -1543,6 +1557,14 @@
   }
 
   /* Vuetify */
+  .spacer-top {
+    margin-top: 50px;
+  }
+  .vet-toolbar {
+    z-index: 2;
+    position: absolute;
+    display: flex;
+  }
   .pagination-btn {
     min-width: auto;
     padding: 0 10px;
@@ -1552,10 +1574,6 @@
   }
   .modal-card {
     background-color: #fff;
-  }
-  .vet-toolbar {
-    z-index: 2;
-    position: absolute;
   }
   .datatable tbody tr.activeRow td {
     /*border: 2px solid #2E7CA4;*/
