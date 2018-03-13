@@ -149,3 +149,8 @@ All contributions are welcome!
 ## License
 
 [MIT](http://opensource.org/licenses/MIT)
+
+## Support on Beerpay
+Hey dude! Help me out for a couple of :beers:!
+
+[![Beerpay](https://beerpay.io/el-jacko/vue-editortable/badge.svg?style=beer-square)](https://beerpay.io/el-jacko/vue-editortable)  [![Beerpay](https://beerpay.io/el-jacko/vue-editortable/make-wish.svg?style=flat-square)](https://beerpay.io/el-jacko/vue-editortable?focus=wish)
