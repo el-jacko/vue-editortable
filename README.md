@@ -1,3 +1,6 @@
+## Important
+Due to lack of time this project is on hold.
+
 ## Support on Beerpay
 Hey dude! Help me out for a couple of :beers:!
 
